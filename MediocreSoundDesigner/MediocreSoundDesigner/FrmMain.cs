@@ -117,4 +117,11 @@ public partial class FrmMain : Form {
       sound.SaveToFile(sfdSaveFile.FileName);
     }
   }
+
+  private void menuEditVolume_Click(object sender, EventArgs e) {
+    FrmEditVolume frmEditVolume = new();
+    frmEditVolume.setSound(sound);
+    frmEditVolume.ShowDialog();
+    panWaveform.Invalidate();
+  }
 }

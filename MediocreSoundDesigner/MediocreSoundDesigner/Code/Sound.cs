@@ -8,7 +8,6 @@ public class Sound : IDisposable {
   private float offset;
   private float timeScale;
   private int sampleRate;
-  private float volume;
   private float[] samples;
   private float pitch;
   private int bits;
@@ -19,6 +18,7 @@ public class Sound : IDisposable {
 
   private static readonly Color SAMPLES_DRAW_COLOR = Color.Cyan;
 
+  public float Volume { get; private set; }
   private string tempFilePath => Path.Combine(Path.GetTempPath(), "MediocreSoundDesigner", "temp.wav");
 
   public PlaybackState State => outputDevice?.PlaybackState ?? PlaybackState.Stopped;
@@ -36,7 +36,7 @@ public class Sound : IDisposable {
     this.duration = fileReader.TotalTime;
     this.offset = 0;
     this.timeScale = 1.0f;
-    this.volume = 1.0f;
+    this.Volume = 1.0f;
     this.pitch = 1.0f;
     this.bits = fileReader.WaveFormat.BitsPerSample;
     this.channels = fileReader.WaveFormat.Channels;
@@ -50,7 +50,7 @@ public class Sound : IDisposable {
     this.duration = TimeSpan.Zero;
     this.offset = 0;
     this.timeScale = 1.0f;
-    this.volume = 1.0f;
+    this.Volume = 1.0f;
     this.pitch = 1.0f;
     this.bits = 32;
     this.channels = 1;
@@ -107,14 +107,18 @@ public class Sound : IDisposable {
   }
 
   public void AdjustVolume(float adjustBy) {
-    volume += adjustBy;
-    volume = Math.Clamp(volume, 0.0f, 2.0f);
+    Volume += adjustBy;
+    Volume = Math.Clamp(Volume, 0.0f, 2.0f);
+  }
+
+  public void SetVolume(float newVolume) {
+    Volume = newVolume;
   }
 
   private float[] GetSamplesAdjustedByVolume() {
     float[] adjSamples = new float[samples.Length];
     for (int s = 0; s < samples.Length; s++) {
-      adjSamples[s] = samples[s] * volume;
+      adjSamples[s] = samples[s] * Volume;
     }
     return adjSamples;
   }
@@ -125,12 +129,12 @@ public class Sound : IDisposable {
     float avgAmp = samples.Select(sample => Math.Abs(sample)).Average();
     float maxAmp = samples.Select(sample => Math.Abs(sample)).Max();
 
-    float normScale = panel.Height / maxAmp;
+    float normScale = panel.Height / 2;
     if (samples != null && samples.Length > 0) {
       int x = 0;
       Pen p = new(SAMPLES_DRAW_COLOR);
       for (int s = 0; s < samples.Length; s += samples.Length / panel.Width) {
-        var sample = (int)(samples[s] * normScale * volume);
+        var sample = (int)(samples[s] * normScale * Volume);
         g.DrawLine(p, new Point(x, panel.Height / 2), new Point(x, panel.Height / 2 - sample));
         x += SIZE;
       }
