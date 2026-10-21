@@ -36,7 +36,6 @@
       Margin = new Padding(7, 7, 7, 7);
       Name = "FrmEditMaster";
       Text = "FrmEditMaster";
-      Load += FrmEditMaster_Load;
       ResumeLayout(false);
     }
 

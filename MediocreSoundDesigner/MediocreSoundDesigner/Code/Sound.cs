@@ -57,6 +57,13 @@ public class Sound : IDisposable {
     this.sampleRate = 0;
   }
 
+  public void ReplaceSamples(float[] samples) {
+    this.samples = samples;
+  }
+  public float[] CloneSamples() {
+    return (float[])samples.Clone();
+  }
+
   public void Reverse() {
     for (int i = 0; i < samples.Length / 2; i++) {
       var temp = samples[i];

@@ -1,28 +1,15 @@
 ﻿namespace MediocreSoundDesigner;
 
-public partial class FrmEditVolume : Form {
-  private Sound snd;
-
+public partial class FrmEditVolume : FrmEditMaster {
   public FrmEditVolume() {
     InitializeComponent();
   }
-  private void FrmEditVolume_Load(object sender, EventArgs e) {
 
+  protected override void Init() {
+    nudVolume.Value = (decimal)(sound.Volume * 100.0f);
   }
 
-  public void setSound(Sound snd) {
-    this.snd = snd;
-    nudVolume.Value = (decimal)(snd.Volume * 100.0f);
-  }
-
-  private void btnCancel_Click(object sender, EventArgs e) {
-    DialogResult = DialogResult.Cancel;
-    Close();
-  }
-
-  private void btnApply_Click(object sender, EventArgs e) {
-    snd.SetVolume((float)nudVolume.Value / 100.0f);
-    DialogResult = DialogResult.OK;
-    Close();
+  protected override void Apply() {
+    sound.SetVolume((float)nudVolume.Value / 100.0f);
   }
 }

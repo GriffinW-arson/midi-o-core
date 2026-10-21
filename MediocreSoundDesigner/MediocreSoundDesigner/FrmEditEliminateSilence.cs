@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿namespace MediocreSoundDesigner;
 
-namespace MediocreSoundDesigner {
-  public partial class FrmEditEliminateSilence : Form {
-    public FrmEditEliminateSilence() {
-      InitializeComponent();
-    }
+public partial class FrmEditEliminateSilence : FrmEditMaster {
+  public FrmEditEliminateSilence() {
+    InitializeComponent();
+  }
+
+  protected override void Init() {
+    
+  }
+
+  protected override void Apply() {
   }
 }

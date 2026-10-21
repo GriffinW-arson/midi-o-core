@@ -78,7 +78,7 @@
       // 
       checkBox2.AutoSize = true;
       checkBox2.ForeColor = Color.White;
-      checkBox2.Location = new Point(214, 66);
+      checkBox2.Location = new Point(328, 66);
       checkBox2.Name = "checkBox2";
       checkBox2.Size = new Size(83, 41);
       checkBox2.TabIndex = 7;
@@ -89,7 +89,7 @@
       // 
       checkBox3.AutoSize = true;
       checkBox3.ForeColor = Color.White;
-      checkBox3.Location = new Point(332, 66);
+      checkBox3.Location = new Point(189, 66);
       checkBox3.Name = "checkBox3";
       checkBox3.Size = new Size(127, 41);
       checkBox3.TabIndex = 8;
@@ -139,7 +139,7 @@
       // label3
       // 
       label3.AutoSize = true;
-      label3.Location = new Point(42, 26);
+      label3.Location = new Point(26, 26);
       label3.Name = "label3";
       label3.Size = new Size(369, 37);
       label3.TabIndex = 13;
@@ -150,7 +150,7 @@
       AutoScaleDimensions = new SizeF(16F, 37F);
       AutoScaleMode = AutoScaleMode.Font;
       BackColor = Color.Black;
-      ClientSize = new Size(478, 372);
+      ClientSize = new Size(436, 372);
       Controls.Add(label3);
       Controls.Add(label2);
       Controls.Add(nudThreshold);
@@ -161,9 +161,6 @@
       Controls.Add(checkBox1);
       Controls.Add(btnCancel);
       Controls.Add(btnApply);
-      Font = new Font("Segoe UI", 20.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-      ForeColor = Color.White;
-      Margin = new Padding(7, 7, 7, 7);
       Name = "FrmEditEliminateSilence";
       Text = "FrmEditEliminateSilence";
       ((System.ComponentModel.ISupportInitialize)nudMinDuration).EndInit();
