@@ -2,12 +2,11 @@
 
 namespace MediocreSoundDesigner;
 
-[Flags]
 public enum SampleRegion {
-  NONE = 0,
-  BEGINNING = 1,
-  MIDDLE = 2,
-  END = 4,
+  BEGINNING_ONLY,
+  END_ONLY,
+  BEGINNING_AND_END,
+  ANYWHERE,
 }
 
 public class Track : IDisposable {
@@ -24,12 +23,14 @@ public class Track : IDisposable {
   private AudioFileReader fileReader;
   private WaveOut outputDevice;
   private Panel panContainer;
+  private int drawTimescale;
 
   // consts
   private static readonly Color SAMPLES_DRAW_COLOR = Color.Cyan;
   private static readonly Color SAMPLES_DRAW_COLOR_DISABLED = Color.LightGray;
 
   // properties
+  public int DrawOffset { get; set; }
   public bool IsDisabled { get; private set; }
   public Panel PanDrawSamples { get; private set; }
   public float Volume { get; private set; }
@@ -104,7 +105,7 @@ public class Track : IDisposable {
   }
   public void EliminateSilence(SampleRegion region, float minDuration, float thres) {
     float[] newSamples = CloneSamples();
-    if (region.HasFlag(SampleRegion.BEGINNING)) {
+    if (region is SampleRegion.BEGINNING_ONLY or SampleRegion.BEGINNING_AND_END) {
       int silentDurationInNumSamples = 0;
       for (int i = 0; i < newSamples.Length; i++) {
         if (Math.Abs(newSamples[i]) <= thres) {
@@ -118,7 +119,7 @@ public class Track : IDisposable {
         newSamples = newSamples[silentDurationInNumSamples..];
       }
     }
-    if (region.HasFlag(SampleRegion.END)) {
+    if (region is SampleRegion.END_ONLY or SampleRegion.BEGINNING_AND_END) {
       int silentDurationInNumSamples = 0;
       for (int i = newSamples.Length - 1; i >= 0; i--) {
         if (Math.Abs(newSamples[i]) <= thres) {
@@ -129,23 +130,28 @@ public class Track : IDisposable {
         }
       }
       if ((float)silentDurationInNumSamples / sampleRate >= minDuration) {
-        newSamples = newSamples[0..silentDurationInNumSamples];
+        newSamples = newSamples[0..^silentDurationInNumSamples];
       }
     }
-    if (region.HasFlag(SampleRegion.MIDDLE)) {
+    if (region is SampleRegion.ANYWHERE) {
       int silentDurationInNumSamples = 0;
       int silentRegionStart = 0;
-      for (int i = 0; i < newSamples.Length; i++) {
+      int i;
+      for (i = 0; i < newSamples.Length; i++) {
         if (Math.Abs(newSamples[i]) <= thres) {
           silentDurationInNumSamples++;
         }
         else {
           if ((float)silentDurationInNumSamples / sampleRate >= minDuration) {
-            newSamples = newSamples[silentRegionStart..i];
+            newSamples = [..newSamples[0..silentRegionStart], ..newSamples[i..]];
+            i = 0;
           }
           silentRegionStart = i + 1;
           silentDurationInNumSamples = 0;
         }
+      }
+      if ((float)silentDurationInNumSamples / sampleRate >= minDuration) {
+        newSamples = [.. newSamples[0..silentRegionStart], .. newSamples[i..]];
       }
     }
     samples = newSamples;
@@ -167,7 +173,7 @@ public class Track : IDisposable {
   public void Reset() {
   }
   public int GetPlayheadPos() {
-    return (int)((outputDevice?.GetPosition() ?? 0) / 4) / (samples.Length / panContainer.Width);
+    return (int)((outputDevice?.GetPosition() ?? 0) / 4);
   }
   public void ToggleDisabled() {
     IsDisabled = !IsDisabled;
@@ -177,34 +183,43 @@ public class Track : IDisposable {
   private void SaveToTempFile() {
     Directory.CreateDirectory(Path.GetDirectoryName(tempFilePath));
     using var writer = new WaveFileWriter(tempFilePath, fileReader?.WaveFormat ?? new());
-    writer.WriteSamples(GetSamplesAdjustedByVolume(), 0, samples.Length);
+    writer.WriteSamples(GetAdjustedSamples(), 0, samples.Length);
   }
   public void SaveToFile(string path) {
     Directory.CreateDirectory(Path.GetDirectoryName(path));
     using var writer = new WaveFileWriter(path, fileReader?.WaveFormat ?? new());
-    writer.WriteSamples(GetSamplesAdjustedByVolume(), 0, samples.Length);
+    writer.WriteSamples(GetAdjustedSamples(), 0, samples.Length);
   }
-  private float[] GetSamplesAdjustedByVolume() {
+  public float[] GetAdjustedSamples() {
     float[] adjSamples = new float[samples.Length];
     for (int s = 0; s < samples.Length; s++) {
       adjSamples[s] = samples[s] * Volume;
     }
-    return adjSamples;
+    float[] deadSpace = new float[DrawOffset * drawTimescale];
+    for (int i = 0; i < DrawOffset; i++) {
+      deadSpace[i] = 0.0f;
+    }
+
+    return [.. deadSpace, .. adjSamples];
   }
 
   // render
-  public void DrawSamples(Graphics g) {
+  public void ShiftSampleOver(int amount) {
+    DrawOffset += amount;
+    DrawOffset = Math.Max(0, DrawOffset);
+  }
+  public void DrawSamples(Graphics g, int drawTimescale) {
     if (PanDrawSamples is null) {
       return;
     }
 
-    int stride = samples.Length / PanDrawSamples.Width;
+    this.drawTimescale = drawTimescale;
     float heightAdj = PanDrawSamples.Height / 2;
     if (samples != null && samples.Length > 0) {
-      int x = 0;
+      int x = DrawOffset;
       Pen pen = new(IsDisabled ? SAMPLES_DRAW_COLOR_DISABLED : SAMPLES_DRAW_COLOR);
       List<Point> points = new();
-      for (int s = 0; s < samples.Length; s += stride) {
+      for (int s = 0; s < samples.Length; s += drawTimescale) {
         var sample = (int)(samples[s] * heightAdj * Volume);
         points.Add(new(x, PanDrawSamples.Height / 2));
         points.Add(new(x, PanDrawSamples.Height / 2 - sample));

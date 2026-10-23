@@ -48,11 +48,12 @@
       btnPlay = new Button();
       tmrUpdate = new System.Windows.Forms.Timer(components);
       sfdSaveFile = new SaveFileDialog();
-      trkPlayhead = new TrackBar();
+      trkDrawTimescale = new TrackBar();
       colorDialog = new ColorDialog();
+      menuGenRecord = new ToolStripMenuItem();
       panTracks.SuspendLayout();
       menu.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)trkPlayhead).BeginInit();
+      ((System.ComponentModel.ISupportInitialize)trkDrawTimescale).BeginInit();
       SuspendLayout();
       // 
       // panTracks
@@ -107,14 +108,14 @@
       // menuFileOpen
       // 
       menuFileOpen.Name = "menuFileOpen";
-      menuFileOpen.Size = new Size(112, 22);
+      menuFileOpen.Size = new Size(180, 22);
       menuFileOpen.Text = "Open...";
       menuFileOpen.Click += menuFileOpen_Click;
       // 
       // menuFileSave
       // 
       menuFileSave.Name = "menuFileSave";
-      menuFileSave.Size = new Size(112, 22);
+      menuFileSave.Size = new Size(180, 22);
       menuFileSave.Text = "Save...";
       menuFileSave.Click += menuFileSave_Click;
       // 
@@ -161,7 +162,7 @@
       // 
       // menuGen
       // 
-      menuGen.DropDownItems.AddRange(new ToolStripItem[] { menuGenNoise, menuGenGradientNoise });
+      menuGen.DropDownItems.AddRange(new ToolStripItem[] { menuGenRecord, menuGenNoise, menuGenGradientNoise });
       menuGen.Name = "menuGen";
       menuGen.Size = new Size(66, 20);
       menuGen.Text = "&Generate";
@@ -169,14 +170,14 @@
       // menuGenNoise
       // 
       menuGenNoise.Name = "menuGenNoise";
-      menuGenNoise.Size = new Size(152, 22);
+      menuGenNoise.Size = new Size(180, 22);
       menuGenNoise.Text = "Noise";
       menuGenNoise.Click += menuGenNoise_Click;
       // 
       // menuGenGradientNoise
       // 
       menuGenGradientNoise.Name = "menuGenGradientNoise";
-      menuGenGradientNoise.Size = new Size(152, 22);
+      menuGenGradientNoise.Size = new Size(180, 22);
       menuGenGradientNoise.Text = "Gradient Noise";
       menuGenGradientNoise.Click += menuGenGradientNoise_Click;
       // 
@@ -204,13 +205,26 @@
       tmrUpdate.Interval = 20;
       tmrUpdate.Tick += tmrUpdatePlaybackState_Tick;
       // 
-      // trkPlayhead
+      // trkDrawTimescale
       // 
-      trkPlayhead.Location = new Point(12, 55);
-      trkPlayhead.Maximum = 100;
-      trkPlayhead.Name = "trkPlayhead";
-      trkPlayhead.Size = new Size(1580, 45);
-      trkPlayhead.TabIndex = 7;
+      trkDrawTimescale.LargeChange = 50;
+      trkDrawTimescale.Location = new Point(12, 55);
+      trkDrawTimescale.Maximum = 1000;
+      trkDrawTimescale.Minimum = 1;
+      trkDrawTimescale.Name = "trkDrawTimescale";
+      trkDrawTimescale.Size = new Size(1580, 45);
+      trkDrawTimescale.SmallChange = 10;
+      trkDrawTimescale.TabIndex = 7;
+      trkDrawTimescale.TickFrequency = 10;
+      trkDrawTimescale.Value = 500;
+      trkDrawTimescale.Scroll += trkDrawTimescale_Scroll;
+      // 
+      // menuGenRecord
+      // 
+      menuGenRecord.Name = "menuGenRecord";
+      menuGenRecord.Size = new Size(180, 22);
+      menuGenRecord.Text = "Record...";
+      menuGenRecord.Click += menuGenRecord_Click;
       // 
       // FrmMain
       // 
@@ -218,19 +232,20 @@
       AutoScaleMode = AutoScaleMode.Font;
       BackColor = Color.Black;
       ClientSize = new Size(1604, 783);
-      Controls.Add(trkPlayhead);
+      Controls.Add(trkDrawTimescale);
       Controls.Add(btnPlay);
       Controls.Add(lblDebug);
       Controls.Add(panTracks);
       Controls.Add(menu);
+      KeyPreview = true;
       MainMenuStrip = menu;
       Name = "FrmMain";
       Text = "Mediocre Sound Designer";
-      ResizeEnd += FrmMain_Resize;
+      SizeChanged += FrmMain_SizeChanged;
       panTracks.ResumeLayout(false);
       menu.ResumeLayout(false);
       menu.PerformLayout();
-      ((System.ComponentModel.ISupportInitialize)trkPlayhead).EndInit();
+      ((System.ComponentModel.ISupportInitialize)trkDrawTimescale).EndInit();
       ResumeLayout(false);
       PerformLayout();
     }
@@ -255,9 +270,10 @@
     private ToolStripMenuItem menuGenGradientNoise;
     private ToolStripMenuItem menuEditFlip;
     private SaveFileDialog sfdSaveFile;
-    private TrackBar trkPlayhead;
+    private TrackBar trkDrawTimescale;
     private ColorDialog colorDialog;
     private ToolStripMenuItem menuEditEliminateSilence;
     private Label lblPlayhead;
+    private ToolStripMenuItem menuGenRecord;
   }
 }

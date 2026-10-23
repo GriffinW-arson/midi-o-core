@@ -8,6 +8,7 @@ public class TrackManager {
 	public Track SelectedTrack { get; private set; }
   private Track pseudoCombinedTrack;
   private Panel panContainer;
+  public int DrawTimescale { get; set; }
 
   public TrackManager(Panel panContainer) {
 		Tracks = new();
@@ -34,6 +35,10 @@ public class TrackManager {
     track.PanDrawSamples.BackColor = Color.Gray;
   }
 
+  public void RedrawAll() {
+    Tracks.ForEach(track => track.PanDrawSamples.Invalidate());
+  }
+
 	public void PlayAll() {
     pseudoCombinedTrack?.Dispose();
     List<float> combinedSamples = new();
@@ -41,7 +46,7 @@ public class TrackManager {
       if (track.IsDisabled) {
         continue;
       }
-      float[] trackSamples = track.CloneSamples();
+      float[] trackSamples = (float[])track.GetAdjustedSamples().Clone();
       for (int i = 0; i < trackSamples.Length; i++) {
         if (combinedSamples.Count <= i) {
           combinedSamples.Add(0);
@@ -57,6 +62,6 @@ public class TrackManager {
     pseudoCombinedTrack?.Pause();
   }
   public int GetPlayheadPos() {
-    return pseudoCombinedTrack?.GetPlayheadPos() ?? 0;
+    return (pseudoCombinedTrack?.GetPlayheadPos() ?? 0) / DrawTimescale;
   }
 }

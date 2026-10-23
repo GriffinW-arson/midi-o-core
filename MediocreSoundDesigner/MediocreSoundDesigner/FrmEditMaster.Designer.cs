@@ -33,8 +33,9 @@
       ClientSize = new Size(575, 383);
       Font = new Font("Segoe UI", 20.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
       ForeColor = Color.White;
-      Margin = new Padding(7, 7, 7, 7);
+      Margin = new Padding(7);
       Name = "FrmEditMaster";
+      StartPosition = FormStartPosition.CenterParent;
       Text = "FrmEditMaster";
       ResumeLayout(false);
     }

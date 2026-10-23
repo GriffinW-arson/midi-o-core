@@ -14,13 +14,9 @@ public partial class FrmMain : Form {
     DoubleBuffered = true;
     trackManager = new(panTracks);
     btnPlay.BackgroundImage = Resources.play;
+    trackManager.DrawTimescale = trkDrawTimescale.Value;
     UpdateSizes();
   }
-
-  //private void panWaveform_Paint(object sender, PaintEventArgs e) {
-  //  base.OnPaint(e);
-  //  sound?.DrawSamples(e.Graphics);
-  //}
 
   private void btnPlay_Click(object sender, EventArgs e) {
     if (trackManager.State is NAudio.Wave.PlaybackState.Stopped or NAudio.Wave.PlaybackState.Paused) {
@@ -58,26 +54,18 @@ public partial class FrmMain : Form {
     };
     pan.Click += (sender, e) => {
       trackManager.SelectTrack(track);
-
-      if (ModifierKeys.HasFlag(Keys.Shift)) {
-        if (MessageBox.Show("This will delete the selected track. This is NOT undoable!", "Are You Sure?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Exclamation) == DialogResult.Yes) {
-          panTracks.Controls.Remove(track.PanDrawSamples);
-          track.PanDrawSamples.Dispose();
-          track.Dispose();
-          trackManager.RemTrack(track);
-          UpdateSizes();
-        }
-      }
     };
     pan.DoubleClick += (sender, e) => {
       track.ToggleDisabled();
       track.PanDrawSamples.Invalidate();
     };
     pan.Paint += (sender, e) => {
-      track.DrawSamples(e.Graphics);
+      track.DrawSamples(e.Graphics, trackManager.DrawTimescale);
     };
     panTracks.Controls.Add(pan);
     track.LinkPanels(pan, panTracks);
+    trackManager.SelectTrack(track);
+
     return pan;
   }
 
@@ -182,12 +170,60 @@ public partial class FrmMain : Form {
       track.PanDrawSamples.Invalidate();
       top += track.PanDrawSamples.Height;
     }
+    trkDrawTimescale.Width = panTracks.Width;
+    trkDrawTimescale.Left = PADDING;
     lblPlayhead.Left = 0;
     lblPlayhead.Height = panTracks.Height;
     lblPlayhead.BringToFront();
   }
 
-  private void FrmMain_Resize(object sender, EventArgs e) {
+  private void trkDrawTimescale_Scroll(object sender, EventArgs e) {
+    trackManager.DrawTimescale = trkDrawTimescale.Value;
+    trackManager.RedrawAll();
+  }
+
+  protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
+    if (trackManager.SelectedTrack is not null) {
+      if (keyData == Keys.Left) {
+        trackManager.SelectedTrack.ShiftSampleOver(-5);
+        trackManager.SelectedTrack.PanDrawSamples.Invalidate();
+        return true;
+      }
+      else if (keyData == Keys.Right) {
+        trackManager.SelectedTrack.ShiftSampleOver(+5);
+        trackManager.SelectedTrack.PanDrawSamples.Invalidate();
+        return true;
+      }
+      else if (keyData == Keys.Delete) {
+        if (trackManager.SelectedTrack is not null) {
+          if (MessageBox.Show("This will delete the selected track. This is NOT undoable!", "Are You Sure?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Exclamation) == DialogResult.Yes) {
+            panTracks.Controls.Remove(trackManager.SelectedTrack.PanDrawSamples);
+            trackManager.SelectedTrack.PanDrawSamples.Dispose();
+            trackManager.SelectedTrack.Dispose();
+            trackManager.RemTrack(trackManager.SelectedTrack);
+            UpdateSizes();
+          }
+        }
+      }
+    }
+    return base.ProcessCmdKey(ref msg, keyData);
+  }
+
+  private void FrmMain_SizeChanged(object sender, EventArgs e) {
     UpdateSizes();
+  }
+
+  private void menuGenRecord_Click(object sender, EventArgs e) {
+    Track newTrack = new(new float[0]);
+    CreateTrackPanel(newTrack);
+    trackManager.AddTrack(newTrack);
+    UpdateSizes();
+    newTrack.PanDrawSamples.Invalidate();
+
+    FrmGenRecord frm = new();
+    frm.SetSound(trackManager.SelectedTrack);
+    if (frm.ShowDialog() == DialogResult.Cancel) {
+      trackManager.RemTrack(newTrack);
+    }
   }
 }

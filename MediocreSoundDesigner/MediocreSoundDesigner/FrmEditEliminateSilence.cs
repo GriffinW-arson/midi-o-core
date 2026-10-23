@@ -6,20 +6,16 @@ public partial class FrmEditEliminateSilence : FrmEditMaster {
   }
 
   protected override void Init() {
-
+    cmbWhere.SelectedIndex = 0;
   }
 
   protected override void Apply() {
-    SampleRegion region = SampleRegion.NONE;
-    if (chkRegionBeginning.Checked) {
-      region |= SampleRegion.BEGINNING;
-    }
-    if (chkRegionMiddle.Checked) {
-      region |= SampleRegion.MIDDLE;
-    }
-    if (chkRegionEnd.Checked) {
-      region |= SampleRegion.END;
-    }
+    SampleRegion region = cmbWhere.SelectedIndex switch {
+      0 => SampleRegion.BEGINNING_ONLY,
+      1 => SampleRegion.END_ONLY,
+      2 => SampleRegion.BEGINNING_AND_END,
+      3 => SampleRegion.ANYWHERE
+    };
     track.EliminateSilence(region, (float)nudMinDuration.Value, (float)nudThreshold.Value);
   }
 }
