@@ -37,12 +37,12 @@
       menuFileOpen = new ToolStripMenuItem();
       menuFileSave = new ToolStripMenuItem();
       menuEdit = new ToolStripMenuItem();
-      menuEditPitch = new ToolStripMenuItem();
       menuEditVolume = new ToolStripMenuItem();
       menuEditReverse = new ToolStripMenuItem();
       menuEditFlip = new ToolStripMenuItem();
       menuEditEliminateSilence = new ToolStripMenuItem();
       menuGen = new ToolStripMenuItem();
+      menuGenRecord = new ToolStripMenuItem();
       menuGenNoise = new ToolStripMenuItem();
       menuGenGradientNoise = new ToolStripMenuItem();
       btnPlay = new Button();
@@ -50,7 +50,6 @@
       sfdSaveFile = new SaveFileDialog();
       trkDrawTimescale = new TrackBar();
       colorDialog = new ColorDialog();
-      menuGenRecord = new ToolStripMenuItem();
       panTracks.SuspendLayout();
       menu.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)trkDrawTimescale).BeginInit();
@@ -121,42 +120,36 @@
       // 
       // menuEdit
       // 
-      menuEdit.DropDownItems.AddRange(new ToolStripItem[] { menuEditPitch, menuEditVolume, menuEditReverse, menuEditFlip, menuEditEliminateSilence });
+      menuEdit.DropDownItems.AddRange(new ToolStripItem[] { menuEditFlip, menuEditReverse, menuEditVolume, menuEditEliminateSilence });
       menuEdit.Name = "menuEdit";
       menuEdit.Size = new Size(39, 20);
       menuEdit.Text = "E&dit";
       // 
-      // menuEditPitch
-      // 
-      menuEditPitch.Name = "menuEditPitch";
-      menuEditPitch.Size = new Size(172, 22);
-      menuEditPitch.Text = "Alter Pitch...";
-      // 
       // menuEditVolume
       // 
       menuEditVolume.Name = "menuEditVolume";
-      menuEditVolume.Size = new Size(172, 22);
+      menuEditVolume.Size = new Size(180, 22);
       menuEditVolume.Text = "Alter Volume...";
       menuEditVolume.Click += menuEditVolume_Click;
       // 
       // menuEditReverse
       // 
       menuEditReverse.Name = "menuEditReverse";
-      menuEditReverse.Size = new Size(172, 22);
+      menuEditReverse.Size = new Size(180, 22);
       menuEditReverse.Text = "Reverse";
       menuEditReverse.Click += menuEditReverse_Click;
       // 
       // menuEditFlip
       // 
       menuEditFlip.Name = "menuEditFlip";
-      menuEditFlip.Size = new Size(172, 22);
+      menuEditFlip.Size = new Size(180, 22);
       menuEditFlip.Text = "Flip";
       menuEditFlip.Click += menuEditFlip_Click;
       // 
       // menuEditEliminateSilence
       // 
       menuEditEliminateSilence.Name = "menuEditEliminateSilence";
-      menuEditEliminateSilence.Size = new Size(172, 22);
+      menuEditEliminateSilence.Size = new Size(180, 22);
       menuEditEliminateSilence.Text = "Eliminate Silence...";
       menuEditEliminateSilence.Click += menuEditEliminateSilence_Click;
       // 
@@ -167,17 +160,24 @@
       menuGen.Size = new Size(66, 20);
       menuGen.Text = "&Generate";
       // 
+      // menuGenRecord
+      // 
+      menuGenRecord.Name = "menuGenRecord";
+      menuGenRecord.Size = new Size(152, 22);
+      menuGenRecord.Text = "Record...";
+      menuGenRecord.Click += menuGenRecord_Click;
+      // 
       // menuGenNoise
       // 
       menuGenNoise.Name = "menuGenNoise";
-      menuGenNoise.Size = new Size(180, 22);
+      menuGenNoise.Size = new Size(152, 22);
       menuGenNoise.Text = "Noise";
       menuGenNoise.Click += menuGenNoise_Click;
       // 
       // menuGenGradientNoise
       // 
       menuGenGradientNoise.Name = "menuGenGradientNoise";
-      menuGenGradientNoise.Size = new Size(180, 22);
+      menuGenGradientNoise.Size = new Size(152, 22);
       menuGenGradientNoise.Text = "Gradient Noise";
       menuGenGradientNoise.Click += menuGenGradientNoise_Click;
       // 
@@ -219,13 +219,6 @@
       trkDrawTimescale.Value = 500;
       trkDrawTimescale.Scroll += trkDrawTimescale_Scroll;
       // 
-      // menuGenRecord
-      // 
-      menuGenRecord.Name = "menuGenRecord";
-      menuGenRecord.Size = new Size(180, 22);
-      menuGenRecord.Text = "Record...";
-      menuGenRecord.Click += menuGenRecord_Click;
-      // 
       // FrmMain
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
@@ -257,7 +250,6 @@
     private OpenFileDialog ofdLoadFile;
     private MenuStrip menu;
     private ToolStripMenuItem menuEdit;
-    private ToolStripMenuItem menuEditPitch;
     private Button btnPlay;
     private ToolStripMenuItem menuEditVolume;
     private ToolStripMenuItem menuEditReverse;

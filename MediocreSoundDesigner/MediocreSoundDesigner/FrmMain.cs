@@ -3,18 +3,54 @@ using MediocreSoundDesigner.Properties;
 namespace MediocreSoundDesigner;
 
 public partial class FrmMain : Form {
+  // fields
   private TrackManager trackManager;
 
+  // ctor
   public FrmMain() {
     InitializeComponent();
     Setup();
   }
 
+  // setup
   private void Setup() {
     DoubleBuffered = true;
     trackManager = new(panTracks);
     btnPlay.BackgroundImage = Resources.play;
     trackManager.DrawTimescale = trkDrawTimescale.Value;
+    UpdateSizes();
+  }
+
+  // GUI controls
+  protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
+    if (trackManager.SelectedTrack is not null) {
+      if (keyData == Keys.Left) {
+        trackManager.SelectedTrack.ShiftSampleOver(-5);
+        trackManager.SelectedTrack.PanDrawSamples.Invalidate();
+        return true;
+      }
+      else if (keyData == Keys.Right) {
+        trackManager.SelectedTrack.ShiftSampleOver(+5);
+        trackManager.SelectedTrack.PanDrawSamples.Invalidate();
+        return true;
+      }
+      else if (keyData == Keys.Delete) {
+        if (trackManager.SelectedTrack is not null) {
+          if (MessageBox.Show("This will delete the selected track. This is NOT undoable!", "Are You Sure?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Exclamation) == DialogResult.Yes) {
+            panTracks.Controls.Remove(trackManager.SelectedTrack.PanDrawSamples);
+            trackManager.SelectedTrack.PanDrawSamples.Dispose();
+            trackManager.SelectedTrack.Dispose();
+            trackManager.RemTrack(trackManager.SelectedTrack);
+            UpdateSizes();
+            return true;
+          }
+        }
+      }
+    }
+    return base.ProcessCmdKey(ref msg, keyData);
+  }
+
+  private void FrmMain_SizeChanged(object sender, EventArgs e) {
     UpdateSizes();
   }
 
@@ -29,14 +65,9 @@ public partial class FrmMain : Form {
     }
   }
 
-  private void menuEditReverse_Click(object sender, EventArgs e) {
-    trackManager.SelectedTrack?.Reverse();
-  }
-
   private void menuFileOpen_Click(object sender, EventArgs e) {
     ofdLoadFile.DefaultExt = "wav";
     if (ofdLoadFile.ShowDialog() == DialogResult.OK) {
-      //sound?.Dispose();
       Track newTrack = new(ofdLoadFile.FileName);
       CreateTrackPanel(newTrack);
       trackManager.AddTrack(newTrack);
@@ -44,7 +75,107 @@ public partial class FrmMain : Form {
       newTrack.PanDrawSamples.Invalidate();
     }
   }
+  private void menuFileSave_Click(object sender, EventArgs e) {
+    sfdSaveFile.DefaultExt = "wav";
+    if (sfdSaveFile.ShowDialog() == DialogResult.OK) {
+      trackManager.SaveToFile(sfdSaveFile.FileName);
+    }
+  }
 
+  private void menuEditFlip_Click(object sender, EventArgs e) {
+    trackManager.SelectedTrack?.Flip();
+  }
+  private void menuEditReverse_Click(object sender, EventArgs e) {
+    trackManager.SelectedTrack?.Reverse();
+  }
+  private void menuEditVolume_Click(object sender, EventArgs e) {
+    if (trackManager.SelectedTrack is not null) {
+      FrmEditVolume frm = new();
+      frm.SetSound(trackManager.SelectedTrack);
+      frm.ShowDialog();
+    }
+  }
+  private void menuEditEliminateSilence_Click(object sender, EventArgs e) {
+    if (trackManager.SelectedTrack is not null) {
+      FrmEditEliminateSilence frm = new();
+      frm.SetSound(trackManager.SelectedTrack);
+      frm.ShowDialog();
+    }
+  }
+
+  private void menuGenRecord_Click(object sender, EventArgs e) {
+    Track newTrack = new(new float[0]);
+    CreateTrackPanel(newTrack);
+    trackManager.AddTrack(newTrack);
+    UpdateSizes();
+    newTrack.PanDrawSamples.Invalidate();
+
+    FrmGenRecord frm = new();
+    frm.SetSound(trackManager.SelectedTrack);
+    if (frm.ShowDialog() == DialogResult.Cancel) {
+      trackManager.RemTrack(newTrack);
+    }
+  }
+  private void menuGenNoise_Click(object sender, EventArgs e) {
+    const int NUM_SAMPLES = 100_000;
+    float[] samples = new float[NUM_SAMPLES];
+    Random rand = new();
+    for (int i = 0; i < NUM_SAMPLES; i++) {
+      samples[i] = rand.NextSingle() * 2.0f - 1.0f;
+    }
+    Track newTrack = new(samples);
+    CreateTrackPanel(newTrack);
+    trackManager.AddTrack(newTrack);
+    UpdateSizes();
+    newTrack.PanDrawSamples.Invalidate();
+  }
+  private void menuGenGradientNoise_Click(object sender, EventArgs e) {
+    const int NUM_SAMPLES = 250_000;
+    float[] samples = new float[NUM_SAMPLES];
+    Random rand = new();
+    float cur = 0;
+    float inc = 0.005f;
+    int dir = +1;
+    for (int i = 0; i < NUM_SAMPLES; i++) {
+      cur += (inc * dir);
+      if (rand.NextSingle() < 0.5f) {
+        dir *= -1;
+      }
+      if (cur > 0.9f) {
+        dir = -1;
+      }
+      if (cur < -0.9f) {
+        dir = +1;
+      }
+      samples[i] = cur;
+    }
+    Track newTrack = new(samples);
+    CreateTrackPanel(newTrack);
+    trackManager.AddTrack(newTrack);
+    UpdateSizes();
+    newTrack.PanDrawSamples.Invalidate();
+  }
+
+  private void tmrUpdatePlaybackState_Tick(object sender, EventArgs e) {
+    if (trackManager.Tracks.Count > 0) {
+      btnPlay.BackgroundImage = trackManager.State == NAudio.Wave.PlaybackState.Playing ? Resources.pause : Resources.play;
+      btnPlay.Visible = true;
+      lblPlayhead.Left = trackManager.GetPlayheadPos();
+      lblPlayhead.Visible = true;
+    }
+    else {
+      btnPlay.BackgroundImage = null;
+      btnPlay.Visible = false;
+      lblPlayhead.Visible = false;
+    }
+  }
+
+  private void trkDrawTimescale_Scroll(object sender, EventArgs e) {
+    trackManager.DrawTimescale = trkDrawTimescale.Value;
+    trackManager.RedrawAll();
+  }
+
+  // Helper methods
   private Panel CreateTrackPanel(Track track) {
     Panel pan = new() {
       BackColor = Color.DimGray,
@@ -69,92 +200,6 @@ public partial class FrmMain : Form {
     return pan;
   }
 
-  private void tmrUpdatePlaybackState_Tick(object sender, EventArgs e) {
-    if (trackManager.Tracks.Count > 0) {
-      btnPlay.BackgroundImage = trackManager.State == NAudio.Wave.PlaybackState.Playing ? Resources.pause : Resources.play;
-      btnPlay.Visible = true;
-      lblPlayhead.Left = trackManager.GetPlayheadPos();
-      lblPlayhead.Visible = true;
-    }
-    else {
-      btnPlay.BackgroundImage = null;
-      btnPlay.Visible = false;
-      lblPlayhead.Visible = false;
-    }
-  }
-
-  private void menuGenNoise_Click(object sender, EventArgs e) {
-    const int NUM_SAMPLES = 100_000;
-    float[] samples = new float[NUM_SAMPLES];
-    Random rand = new();
-    for (int i = 0; i < NUM_SAMPLES; i++) {
-      samples[i] = rand.NextSingle() * 2.0f - 1.0f;
-    }
-    //sound?.Dispose();
-    Track newTrack = new(samples);
-    CreateTrackPanel(newTrack);
-    trackManager.AddTrack(newTrack);
-    UpdateSizes();
-    newTrack.PanDrawSamples.Invalidate();
-  }
-
-  private void menuGenGradientNoise_Click(object sender, EventArgs e) {
-    const int NUM_SAMPLES = 250_000;
-    float[] samples = new float[NUM_SAMPLES];
-    Random rand = new();
-    float cur = 0;
-    float inc = 0.005f;
-    int dir = +1;
-    for (int i = 0; i < NUM_SAMPLES; i++) {
-      cur += (inc * dir);
-      if (rand.NextSingle() < 0.5f) {
-        dir *= -1;
-      }
-      if (cur > 0.9f) {
-        dir = -1;
-      }
-      if (cur < -0.9f) {
-        dir = +1;
-      }
-      samples[i] = cur;
-    }
-    //sound?.Dispose();
-    Track newTrack = new(samples);
-    CreateTrackPanel(newTrack);
-    trackManager.AddTrack(newTrack);
-    UpdateSizes();
-    newTrack.PanDrawSamples.Invalidate();
-  }
-
-  private void menuEditFlip_Click(object sender, EventArgs e) {
-    trackManager.SelectedTrack?.Flip();
-  }
-
-  private void menuFileSave_Click(object sender, EventArgs e) {
-    if (trackManager.SelectedTrack is not null) {
-      sfdSaveFile.DefaultExt = "wav";
-      if (sfdSaveFile.ShowDialog() == DialogResult.OK) {
-        trackManager.SelectedTrack.SaveToFile(sfdSaveFile.FileName);
-      }
-    }
-  }
-
-  private void menuEditVolume_Click(object sender, EventArgs e) {
-    if (trackManager.SelectedTrack is not null) {
-      FrmEditVolume frm = new();
-      frm.SetSound(trackManager.SelectedTrack);
-      frm.ShowDialog();
-    }
-  }
-
-  private void menuEditEliminateSilence_Click(object sender, EventArgs e) {
-    if (trackManager.SelectedTrack is not null) {
-      FrmEditEliminateSilence frm = new();
-      frm.SetSound(trackManager.SelectedTrack);
-      frm.ShowDialog();
-    }
-  }
-
   private void UpdateSizes() {
     const int PADDING = 15;
 
@@ -175,55 +220,5 @@ public partial class FrmMain : Form {
     lblPlayhead.Left = 0;
     lblPlayhead.Height = panTracks.Height;
     lblPlayhead.BringToFront();
-  }
-
-  private void trkDrawTimescale_Scroll(object sender, EventArgs e) {
-    trackManager.DrawTimescale = trkDrawTimescale.Value;
-    trackManager.RedrawAll();
-  }
-
-  protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
-    if (trackManager.SelectedTrack is not null) {
-      if (keyData == Keys.Left) {
-        trackManager.SelectedTrack.ShiftSampleOver(-5);
-        trackManager.SelectedTrack.PanDrawSamples.Invalidate();
-        return true;
-      }
-      else if (keyData == Keys.Right) {
-        trackManager.SelectedTrack.ShiftSampleOver(+5);
-        trackManager.SelectedTrack.PanDrawSamples.Invalidate();
-        return true;
-      }
-      else if (keyData == Keys.Delete) {
-        if (trackManager.SelectedTrack is not null) {
-          if (MessageBox.Show("This will delete the selected track. This is NOT undoable!", "Are You Sure?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Exclamation) == DialogResult.Yes) {
-            panTracks.Controls.Remove(trackManager.SelectedTrack.PanDrawSamples);
-            trackManager.SelectedTrack.PanDrawSamples.Dispose();
-            trackManager.SelectedTrack.Dispose();
-            trackManager.RemTrack(trackManager.SelectedTrack);
-            UpdateSizes();
-          }
-        }
-      }
-    }
-    return base.ProcessCmdKey(ref msg, keyData);
-  }
-
-  private void FrmMain_SizeChanged(object sender, EventArgs e) {
-    UpdateSizes();
-  }
-
-  private void menuGenRecord_Click(object sender, EventArgs e) {
-    Track newTrack = new(new float[0]);
-    CreateTrackPanel(newTrack);
-    trackManager.AddTrack(newTrack);
-    UpdateSizes();
-    newTrack.PanDrawSamples.Invalidate();
-
-    FrmGenRecord frm = new();
-    frm.SetSound(trackManager.SelectedTrack);
-    if (frm.ShowDialog() == DialogResult.Cancel) {
-      trackManager.RemTrack(newTrack);
-    }
   }
 }

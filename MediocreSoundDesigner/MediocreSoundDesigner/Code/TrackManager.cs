@@ -3,12 +3,13 @@
 namespace MediocreSoundDesigner; 
 
 public class TrackManager {
-  public List<Track> Tracks { get; private set; }
-  public PlaybackState State => pseudoCombinedTrack?.State ?? PlaybackState.Stopped;
-	public Track SelectedTrack { get; private set; }
   private Track pseudoCombinedTrack;
   private Panel panContainer;
+
+  public List<Track> Tracks { get; private set; }
+	public Track SelectedTrack { get; private set; }
   public int DrawTimescale { get; set; }
+  public PlaybackState State => pseudoCombinedTrack?.State ?? PlaybackState.Stopped;
 
   public TrackManager(Panel panContainer) {
 		Tracks = new();
@@ -39,7 +40,16 @@ public class TrackManager {
     Tracks.ForEach(track => track.PanDrawSamples.Invalidate());
   }
 
+  public void SaveToFile(string filename) {
+    CombineTracks();
+    pseudoCombinedTrack.SaveToFile(filename);
+  }
+
 	public void PlayAll() {
+    CombineTracks();
+    pseudoCombinedTrack.Play();
+  }
+  private void CombineTracks() {
     pseudoCombinedTrack?.Dispose();
     List<float> combinedSamples = new();
     foreach (Track track in Tracks) {
@@ -56,7 +66,6 @@ public class TrackManager {
     }
     pseudoCombinedTrack = new(combinedSamples.ToArray());
     pseudoCombinedTrack.LinkPanels(null, panContainer);
-    pseudoCombinedTrack.Play();
   }
   public void PauseAll() {
     pseudoCombinedTrack?.Pause();

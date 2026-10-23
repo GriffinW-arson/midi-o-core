@@ -26,7 +26,6 @@
       btnApply = new Button();
       btnCancel = new Button();
       btnRecord = new Button();
-      btnStop = new Button();
       SuspendLayout();
       // 
       // btnApply
@@ -62,31 +61,19 @@
       // 
       btnRecord.AutoSize = true;
       btnRecord.BackColor = Color.Black;
+      btnRecord.BackgroundImage = Properties.Resources.record;
+      btnRecord.BackgroundImageLayout = ImageLayout.Stretch;
+      btnRecord.FlatStyle = FlatStyle.Popup;
       btnRecord.Font = new Font("Segoe UI", 20.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
       btnRecord.ForeColor = Color.Red;
-      btnRecord.Location = new Point(67, 59);
+      btnRecord.Location = new Point(129, 29);
       btnRecord.Margin = new Padding(7);
       btnRecord.Name = "btnRecord";
-      btnRecord.Size = new Size(117, 67);
+      btnRecord.Padding = new Padding(5);
+      btnRecord.Size = new Size(125, 110);
       btnRecord.TabIndex = 4;
-      btnRecord.Text = "Record";
       btnRecord.UseVisualStyleBackColor = false;
       btnRecord.Click += btnRecord_Click;
-      // 
-      // btnStop
-      // 
-      btnStop.AutoSize = true;
-      btnStop.BackColor = Color.Black;
-      btnStop.Font = new Font("Segoe UI", 20.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-      btnStop.ForeColor = Color.Red;
-      btnStop.Location = new Point(192, 59);
-      btnStop.Margin = new Padding(7);
-      btnStop.Name = "btnStop";
-      btnStop.Size = new Size(111, 67);
-      btnStop.TabIndex = 5;
-      btnStop.Text = "Stop";
-      btnStop.UseVisualStyleBackColor = false;
-      btnStop.Click += btnStop_Click;
       // 
       // FrmGenRecord
       // 
@@ -94,7 +81,6 @@
       AutoScaleMode = AutoScaleMode.Font;
       BackColor = Color.Black;
       ClientSize = new Size(381, 231);
-      Controls.Add(btnStop);
       Controls.Add(btnRecord);
       Controls.Add(btnCancel);
       Controls.Add(btnApply);
@@ -109,6 +95,5 @@
     private Button btnApply;
     private Button btnCancel;
     private Button btnRecord;
-    private Button btnStop;
   }
 }
