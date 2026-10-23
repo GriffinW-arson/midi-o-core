@@ -6,10 +6,10 @@ public partial class FrmEditVolume : FrmEditMaster {
   }
 
   protected override void Init() {
-    nudVolume.Value = (decimal)(sound.Volume * 100.0f);
+    nudVolume.Value = (decimal)(track.Volume * 100.0f);
   }
 
   protected override void Apply() {
-    sound.SetVolume((float)nudVolume.Value / 100.0f);
+    track.SetVolume((float)nudVolume.Value / 100.0f);
   }
 }

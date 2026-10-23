@@ -2,7 +2,7 @@
 
 public partial class FrmEditMaster : Form {
   // fields
-  protected Sound sound;
+  protected Track track;
 
   // ctor
   public FrmEditMaster() {
@@ -10,8 +10,8 @@ public partial class FrmEditMaster : Form {
   }
 
   // sound
-  public virtual void SetSound(Sound sound) {
-    this.sound = sound;
+  public virtual void SetSound(Track sound) {
+    this.track = sound;
     Init();
   }
 
@@ -24,6 +24,7 @@ public partial class FrmEditMaster : Form {
 
   public void btnApply_Click(object sender, EventArgs e) {
     Apply();
+    track.PanDrawSamples?.Invalidate();
     DialogResult = DialogResult.OK;
     Close();
   }

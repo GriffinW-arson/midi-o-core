@@ -25,9 +25,9 @@
     private void InitializeComponent() {
       btnCancel = new Button();
       btnApply = new Button();
-      checkBox1 = new CheckBox();
-      checkBox2 = new CheckBox();
-      checkBox3 = new CheckBox();
+      chkRegionBeginning = new CheckBox();
+      chkRegionEnd = new CheckBox();
+      chkRegionMiddle = new CheckBox();
       nudMinDuration = new NumericUpDown();
       label1 = new Label();
       label2 = new Label();
@@ -49,6 +49,7 @@
       btnCancel.TabIndex = 5;
       btnCancel.Text = "Cancel";
       btnCancel.UseVisualStyleBackColor = false;
+      btnCancel.Click += btnCancel_Click;
       // 
       // btnApply
       // 
@@ -62,39 +63,40 @@
       btnApply.TabIndex = 4;
       btnApply.Text = "Apply";
       btnApply.UseVisualStyleBackColor = false;
+      btnApply.Click += btnApply_Click;
       // 
-      // checkBox1
+      // chkRegionBeginning
       // 
-      checkBox1.AutoSize = true;
-      checkBox1.ForeColor = Color.White;
-      checkBox1.Location = new Point(17, 66);
-      checkBox1.Name = "checkBox1";
-      checkBox1.Size = new Size(166, 41);
-      checkBox1.TabIndex = 6;
-      checkBox1.Text = "Beginning";
-      checkBox1.UseVisualStyleBackColor = true;
+      chkRegionBeginning.AutoSize = true;
+      chkRegionBeginning.ForeColor = Color.White;
+      chkRegionBeginning.Location = new Point(17, 66);
+      chkRegionBeginning.Name = "chkRegionBeginning";
+      chkRegionBeginning.Size = new Size(166, 41);
+      chkRegionBeginning.TabIndex = 6;
+      chkRegionBeginning.Text = "Beginning";
+      chkRegionBeginning.UseVisualStyleBackColor = true;
       // 
-      // checkBox2
+      // chkRegionEnd
       // 
-      checkBox2.AutoSize = true;
-      checkBox2.ForeColor = Color.White;
-      checkBox2.Location = new Point(328, 66);
-      checkBox2.Name = "checkBox2";
-      checkBox2.Size = new Size(83, 41);
-      checkBox2.TabIndex = 7;
-      checkBox2.Text = "End";
-      checkBox2.UseVisualStyleBackColor = true;
+      chkRegionEnd.AutoSize = true;
+      chkRegionEnd.ForeColor = Color.White;
+      chkRegionEnd.Location = new Point(328, 66);
+      chkRegionEnd.Name = "chkRegionEnd";
+      chkRegionEnd.Size = new Size(83, 41);
+      chkRegionEnd.TabIndex = 7;
+      chkRegionEnd.Text = "End";
+      chkRegionEnd.UseVisualStyleBackColor = true;
       // 
-      // checkBox3
+      // chkRegionMiddle
       // 
-      checkBox3.AutoSize = true;
-      checkBox3.ForeColor = Color.White;
-      checkBox3.Location = new Point(189, 66);
-      checkBox3.Name = "checkBox3";
-      checkBox3.Size = new Size(127, 41);
-      checkBox3.TabIndex = 8;
-      checkBox3.Text = "Middle";
-      checkBox3.UseVisualStyleBackColor = true;
+      chkRegionMiddle.AutoSize = true;
+      chkRegionMiddle.ForeColor = Color.White;
+      chkRegionMiddle.Location = new Point(189, 66);
+      chkRegionMiddle.Name = "chkRegionMiddle";
+      chkRegionMiddle.Size = new Size(127, 41);
+      chkRegionMiddle.TabIndex = 8;
+      chkRegionMiddle.Text = "Middle";
+      chkRegionMiddle.UseVisualStyleBackColor = true;
       // 
       // nudMinDuration
       // 
@@ -156,9 +158,9 @@
       Controls.Add(nudThreshold);
       Controls.Add(label1);
       Controls.Add(nudMinDuration);
-      Controls.Add(checkBox3);
-      Controls.Add(checkBox2);
-      Controls.Add(checkBox1);
+      Controls.Add(chkRegionMiddle);
+      Controls.Add(chkRegionEnd);
+      Controls.Add(chkRegionBeginning);
       Controls.Add(btnCancel);
       Controls.Add(btnApply);
       Name = "FrmEditEliminateSilence";
@@ -173,9 +175,9 @@
 
     private Button btnCancel;
     private Button btnApply;
-    private CheckBox checkBox1;
-    private CheckBox checkBox2;
-    private CheckBox checkBox3;
+    private CheckBox chkRegionBeginning;
+    private CheckBox chkRegionEnd;
+    private CheckBox chkRegionMiddle;
     private NumericUpDown nudMinDuration;
     private Label label1;
     private Label label2;
