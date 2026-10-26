@@ -6,6 +6,7 @@ public partial class FrmEditVolume : FrmEditMaster {
   }
 
   protected override void Init() {
+    base.Init();
     nudVolume.Value = (decimal)(track.Volume * 100.0f);
   }
 

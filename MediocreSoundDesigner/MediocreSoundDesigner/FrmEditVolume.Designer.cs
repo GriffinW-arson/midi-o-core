@@ -35,7 +35,7 @@
       nudVolume.Font = new Font("Segoe UI", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
       nudVolume.Increment = new decimal(new int[] { 2, 0, 0, 0 });
       nudVolume.Location = new Point(203, 54);
-      nudVolume.Margin = new Padding(7, 7, 7, 7);
+      nudVolume.Margin = new Padding(7);
       nudVolume.Maximum = new decimal(new int[] { 200, 0, 0, 0 });
       nudVolume.Name = "nudVolume";
       nudVolume.Size = new Size(98, 39);
@@ -47,7 +47,6 @@
       // 
       label1.AutoSize = true;
       label1.Font = new Font("Segoe UI", 20.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-      label1.ForeColor = SystemColors.ControlLightLight;
       label1.Location = new Point(68, 56);
       label1.Margin = new Padding(7, 0, 7, 0);
       label1.Name = "label1";
@@ -61,7 +60,7 @@
       btnApply.Font = new Font("Segoe UI", 20.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
       btnApply.ForeColor = Color.Lime;
       btnApply.Location = new Point(234, 162);
-      btnApply.Margin = new Padding(7, 7, 7, 7);
+      btnApply.Margin = new Padding(7);
       btnApply.Name = "btnApply";
       btnApply.Size = new Size(125, 47);
       btnApply.TabIndex = 2;
@@ -76,7 +75,7 @@
       btnCancel.Font = new Font("Segoe UI", 20.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
       btnCancel.ForeColor = Color.Red;
       btnCancel.Location = new Point(37, 162);
-      btnCancel.Margin = new Padding(7, 7, 7, 7);
+      btnCancel.Margin = new Padding(7);
       btnCancel.Name = "btnCancel";
       btnCancel.Size = new Size(144, 47);
       btnCancel.TabIndex = 3;

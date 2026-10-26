@@ -30,14 +30,26 @@ public class TrackManager {
 		SelectedTrack = track;
     Tracks.ForEach(track => {
       track.PanDrawSamples.BorderStyle = BorderStyle.None;
-      track.PanDrawSamples.BackColor = Color.DimGray;
+      track.PanDrawSamples.BackColor = Settings.Color.TrackBg_Unselected;
     });
     track.PanDrawSamples.BorderStyle = BorderStyle.Fixed3D;
-    track.PanDrawSamples.BackColor = Color.Gray;
+    track.PanDrawSamples.BackColor = Settings.Color.TrackBg_Selected;
   }
 
   public void RedrawAll() {
     Tracks.ForEach(track => track.PanDrawSamples.Invalidate());
+  }
+
+  public void ApplySettings() {
+    foreach (Track track in Tracks) {
+      if (SelectedTrack == track) {
+        track.PanDrawSamples.BackColor = Settings.Color.TrackBg_Selected;
+      }
+      else {
+        track.PanDrawSamples.BackColor = Settings.Color.TrackBg_Unselected;
+      }
+    }
+    RedrawAll();
   }
 
   public void SaveToFile(string filename) {
