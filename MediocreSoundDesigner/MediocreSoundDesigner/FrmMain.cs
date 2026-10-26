@@ -1,4 +1,5 @@
 using MediocreSoundDesigner.Properties;
+using System.Text.Json;
 
 namespace MediocreSoundDesigner;
 
@@ -19,6 +20,13 @@ public partial class FrmMain : Form {
     btnPlay.BackgroundImage = Resources.play;
     trackManager.DrawTimescale = trkDrawTimescale.Value;
     UpdateSizes();
+    ApplySettings();
+  }
+  private void ApplySettings() {
+    BackColor = Settings.Color.WinBg;
+    panTracks.BackColor = Settings.Color.TrackBg_Unselected;
+    lblPlayhead.BackColor = Settings.Color.Playline;
+    trackManager.ApplySettings();
   }
 
   // GUI controls
@@ -79,6 +87,13 @@ public partial class FrmMain : Form {
     sfdSaveFile.DefaultExt = "wav";
     if (sfdSaveFile.ShowDialog() == DialogResult.OK) {
       trackManager.SaveToFile(sfdSaveFile.FileName);
+    }
+  }
+  private void menuFileSettings_Click(object sender, EventArgs e) {
+    FrmEditSettings frm = new();
+    frm.SetSound(trackManager.SelectedTrack);
+    if (frm.ShowDialog() == DialogResult.OK) {
+      ApplySettings();
     }
   }
 
@@ -171,14 +186,14 @@ public partial class FrmMain : Form {
   }
 
   private void trkDrawTimescale_Scroll(object sender, EventArgs e) {
-    trackManager.DrawTimescale = trkDrawTimescale.Value;
+    trackManager.DrawTimescale = trkDrawTimescale.Maximum - trkDrawTimescale.Value;
     trackManager.RedrawAll();
   }
 
   // Helper methods
   private Panel CreateTrackPanel(Track track) {
     Panel pan = new() {
-      BackColor = Color.DimGray,
+      BackColor = Settings.Color.TrackBg_Unselected,
       Width = panTracks.Width,
       Left = 0,
       Top = 0,

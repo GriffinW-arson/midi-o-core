@@ -25,10 +25,6 @@ public class Track : IDisposable {
   private Panel panContainer;
   private int drawTimescale;
 
-  // consts
-  private static readonly Color SAMPLES_DRAW_COLOR = Color.Cyan;
-  private static readonly Color SAMPLES_DRAW_COLOR_DISABLED = Color.LightGray;
-
   // properties
   public int DrawOffset { get; set; }
   public bool IsDisabled { get; private set; }
@@ -217,7 +213,7 @@ public class Track : IDisposable {
     float heightAdj = PanDrawSamples.Height / 2;
     if (samples != null && samples.Length > 0) {
       int x = DrawOffset;
-      Pen pen = new(IsDisabled ? SAMPLES_DRAW_COLOR_DISABLED : SAMPLES_DRAW_COLOR);
+      Pen pen = new(IsDisabled ? Settings.Color.TrackSamples_Disabled : Settings.Color.TrackSamples_Enabled);
       List<Point> points = new();
       for (int s = 0; s < samples.Length; s += drawTimescale) {
         var sample = (int)(samples[s] * heightAdj * Volume);

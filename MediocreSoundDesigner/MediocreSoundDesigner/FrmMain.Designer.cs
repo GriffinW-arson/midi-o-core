@@ -37,9 +37,9 @@
       menuFileOpen = new ToolStripMenuItem();
       menuFileSave = new ToolStripMenuItem();
       menuEdit = new ToolStripMenuItem();
-      menuEditVolume = new ToolStripMenuItem();
-      menuEditReverse = new ToolStripMenuItem();
       menuEditFlip = new ToolStripMenuItem();
+      menuEditReverse = new ToolStripMenuItem();
+      menuEditVolume = new ToolStripMenuItem();
       menuEditEliminateSilence = new ToolStripMenuItem();
       menuGen = new ToolStripMenuItem();
       menuGenRecord = new ToolStripMenuItem();
@@ -50,6 +50,7 @@
       sfdSaveFile = new SaveFileDialog();
       trkDrawTimescale = new TrackBar();
       colorDialog = new ColorDialog();
+      menuFileSettings = new ToolStripMenuItem();
       panTracks.SuspendLayout();
       menu.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)trkDrawTimescale).BeginInit();
@@ -99,7 +100,7 @@
       // 
       // menuFile
       // 
-      menuFile.DropDownItems.AddRange(new ToolStripItem[] { menuFileOpen, menuFileSave });
+      menuFile.DropDownItems.AddRange(new ToolStripItem[] { menuFileOpen, menuFileSave, menuFileSettings });
       menuFile.Name = "menuFile";
       menuFile.Size = new Size(37, 20);
       menuFile.Text = "&File";
@@ -125,12 +126,12 @@
       menuEdit.Size = new Size(39, 20);
       menuEdit.Text = "E&dit";
       // 
-      // menuEditVolume
+      // menuEditFlip
       // 
-      menuEditVolume.Name = "menuEditVolume";
-      menuEditVolume.Size = new Size(180, 22);
-      menuEditVolume.Text = "Alter Volume...";
-      menuEditVolume.Click += menuEditVolume_Click;
+      menuEditFlip.Name = "menuEditFlip";
+      menuEditFlip.Size = new Size(180, 22);
+      menuEditFlip.Text = "Flip";
+      menuEditFlip.Click += menuEditFlip_Click;
       // 
       // menuEditReverse
       // 
@@ -139,12 +140,12 @@
       menuEditReverse.Text = "Reverse";
       menuEditReverse.Click += menuEditReverse_Click;
       // 
-      // menuEditFlip
+      // menuEditVolume
       // 
-      menuEditFlip.Name = "menuEditFlip";
-      menuEditFlip.Size = new Size(180, 22);
-      menuEditFlip.Text = "Flip";
-      menuEditFlip.Click += menuEditFlip_Click;
+      menuEditVolume.Name = "menuEditVolume";
+      menuEditVolume.Size = new Size(180, 22);
+      menuEditVolume.Text = "Alter Volume...";
+      menuEditVolume.Click += menuEditVolume_Click;
       // 
       // menuEditEliminateSilence
       // 
@@ -219,6 +220,13 @@
       trkDrawTimescale.Value = 500;
       trkDrawTimescale.Scroll += trkDrawTimescale_Scroll;
       // 
+      // menuFileSettings
+      // 
+      menuFileSettings.Name = "menuFileSettings";
+      menuFileSettings.Size = new Size(180, 22);
+      menuFileSettings.Text = "Settings...";
+      menuFileSettings.Click += menuFileSettings_Click;
+      // 
       // FrmMain
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
@@ -267,5 +275,6 @@
     private ToolStripMenuItem menuEditEliminateSilence;
     private Label lblPlayhead;
     private ToolStripMenuItem menuGenRecord;
+    private ToolStripMenuItem menuFileSettings;
   }
 }
