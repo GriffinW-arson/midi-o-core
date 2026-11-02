@@ -220,5 +220,11 @@ public partial class FrmMain : Form {
     lblPlayhead.Left = 0;
     lblPlayhead.Height = panTracks.Height;
     lblPlayhead.BringToFront();
+
+
+    /// center the play button no matter what the window size is
+    // button.x = (panTracks.X + .5*panTracks.width) - .5*button.width 
+    btnPlay.Left = (panTracks.Left + panTracks.Width / 2) - btnPlay.Width / 2;
+
   }
 }
