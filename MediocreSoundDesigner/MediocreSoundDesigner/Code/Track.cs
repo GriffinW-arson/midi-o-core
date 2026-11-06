@@ -97,8 +97,12 @@ public class Track : IDisposable {
     }
   }
   public void Trim() {
-  }
-  public void AlterTimeScale(float scale) {
+        // write data to/after current byte to 0
+        // cur_byte = outputDevice?.GetPosition()
+        // for all bytes before/after cur_byte: byte = 0000
+    }
+    public void AlterTimeScale(float scale) {
+        // sample rate times scale?
   }
   public void SetVolume(float newVolume) {
     Volume = newVolume;
@@ -171,6 +175,8 @@ public class Track : IDisposable {
     outputDevice?.Pause();
   }
   public void Reset() {
+        // set offset to 0
+        // add a button for this
   }
   public int GetPlayheadPos() {
     return (int)((outputDevice?.GetPosition() ?? 0) / 4);
@@ -180,6 +186,9 @@ public class Track : IDisposable {
   }
 
   // file i/o
+
+      // could add our own logo
+
   private void SaveToTempFile() {
     Directory.CreateDirectory(Path.GetDirectoryName(tempFilePath));
     using var writer = new WaveFileWriter(tempFilePath, fileReader?.WaveFormat ?? new());
