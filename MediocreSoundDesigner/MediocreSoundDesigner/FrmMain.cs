@@ -6,6 +6,15 @@ public partial class FrmMain : Form
 {
     // fields
     private TrackManager trackManager;
+    private readonly HScrollBar timelineScroll = new();
+    private readonly Button btnFitSong = new()
+    {
+        Text = "Fit song", AutoSize = true,
+        BackColor = SystemColors.Control, ForeColor = SystemColors.ControlText,
+        UseVisualStyleBackColor = true
+    };
+    private readonly CheckBox chkFollowPlayback = new() { Text = "Follow playback", AutoSize = true, ForeColor = Color.White };
+    private const int ScrollSteps = 1_000_000;
 
     // ctor
     public FrmMain()
@@ -18,9 +27,29 @@ public partial class FrmMain : Form
     private void Setup()
     {
         DoubleBuffered = true;
+        MinimumSize = new Size(720, 500);
         trackManager = new(panTracks);
+        panTracks.AutoScroll = false;
+        Controls.Add(timelineScroll);
+        Controls.Add(btnFitSong);
+        Controls.Add(chkFollowPlayback);
+        timelineScroll.Scroll += (sender, e) =>
+        {
+            // Manual exploration stays where the user puts it during playback.
+            chkFollowPlayback.Checked = false;
+            int range = timelineScroll.Maximum - timelineScroll.LargeChange + 1;
+            trackManager.Viewport.SetStart(trackManager.Viewport.MaximumStart * e.NewValue / Math.Max(1, range));
+            RefreshTimelineView();
+        };
+        btnFitSong.Click += (sender, e) =>
+        {
+            trackManager.Viewport.Fit();
+            RefreshTimelineView();
+        };
+        trackManager.TimelineChanged += (sender, e) => RefreshTimelineView();
+        FormClosed += (sender, e) => trackManager.Dispose();
         btnPlay.BackgroundImage = Resources.play;
-        trackManager.DrawTimescale = trkDrawTimescale.Value;
+        trkDrawTimescale.Value = trkDrawTimescale.Maximum;
         UpdateSizes();
     }
 
@@ -31,13 +60,13 @@ public partial class FrmMain : Form
         {
             if (keyData == Keys.Left)
             {
-                trackManager.SelectedTrack.ShiftSampleOver(-5);
+                trackManager.SelectedTrack.ShiftSampleOver(-5 * trackManager.Viewport.SecondsPerPixel);
                 trackManager.SelectedTrack.PanDrawSamples.Invalidate();
                 return true;
             }
             else if (keyData == Keys.Right)
             {
-                trackManager.SelectedTrack.ShiftSampleOver(+5);
+                trackManager.SelectedTrack.ShiftSampleOver(5 * trackManager.Viewport.SecondsPerPixel);
                 trackManager.SelectedTrack.PanDrawSamples.Invalidate();
                 return true;
             }
@@ -146,6 +175,10 @@ public partial class FrmMain : Form
         if (frm.ShowDialog() == DialogResult.Cancel)
         {
             trackManager.RemTrack(newTrack);
+            panTracks.Controls.Remove(newTrack.PanDrawSamples);
+            newTrack.PanDrawSamples.Dispose();
+            newTrack.Dispose();
+            UpdateSizes();
         }
     }
     private void menuGenNoise_Click(object sender, EventArgs e)
@@ -197,12 +230,15 @@ public partial class FrmMain : Form
 
     private void tmrUpdatePlaybackState_Tick(object sender, EventArgs e)
     {
+        if (trackManager is null) return;
         if (trackManager.Tracks.Count > 0)
         {
             btnPlay.BackgroundImage = trackManager.State == NAudio.Wave.PlaybackState.Playing ? Resources.pause : Resources.play;
             btnPlay.Visible = true;
-            lblPlayhead.Left = trackManager.GetPlayheadPos();
-            lblPlayhead.Visible = true;
+            if (chkFollowPlayback.Checked && trackManager.State == NAudio.Wave.PlaybackState.Playing &&
+                trackManager.Viewport.Follow(trackManager.PlaybackTime))
+                RefreshTimelineView();
+            UpdatePlayhead();
         }
         else
         {
@@ -214,14 +250,17 @@ public partial class FrmMain : Form
 
     private void trkDrawTimescale_Scroll(object sender, EventArgs e)
     {
-        trackManager.DrawTimescale = trkDrawTimescale.Value;
-        trackManager.RedrawAll();
+        if (trackManager is null) return;
+        double fraction = (double)(trkDrawTimescale.Value - trkDrawTimescale.Minimum) /
+            (trkDrawTimescale.Maximum - trkDrawTimescale.Minimum);
+        trackManager.Viewport.SetZoom(fraction);
+        RefreshTimelineView();
     }
 
     // Helper methods
     private Panel CreateTrackPanel(Track track)
     {
-        Panel pan = new()
+        Panel pan = new WaveformPanel()
         {
             BackColor = Color.DimGray,
             Width = panTracks.Width,
@@ -239,7 +278,7 @@ public partial class FrmMain : Form
         };
         pan.Paint += (sender, e) =>
         {
-            track.DrawSamples(e.Graphics, trackManager.DrawTimescale);
+            track.DrawSamples(e.Graphics, trackManager.Viewport);
         };
         panTracks.Controls.Add(pan);
         track.LinkPanels(pan, panTracks);
@@ -250,30 +289,74 @@ public partial class FrmMain : Form
 
     private void UpdateSizes()
     {
+        if (trackManager is null) return;
         const int PADDING = 15;
 
         panTracks.Left = PADDING;
-        panTracks.Width = ClientSize.Width - (PADDING * 2);
+        panTracks.Width = Math.Max(1, ClientSize.Width - (PADDING * 2));
+        panTracks.Height = Math.Max(1, ClientSize.Height - panTracks.Top - btnPlay.Height - lblDebug.Height - 65);
+        timelineScroll.SetBounds(PADDING, panTracks.Bottom + 3, panTracks.Width, SystemInformation.HorizontalScrollBarHeight);
+        btnFitSong.Location = new Point(PADDING, timelineScroll.Bottom + 8);
+        chkFollowPlayback.Location = new Point(btnFitSong.Right + 15, btnFitSong.Top + 4);
 
         int top = 0;
         foreach (Track track in trackManager.Tracks)
         {
             track.PanDrawSamples.Left = 0;
-            track.PanDrawSamples.Width = panTracks.Width;
-            track.PanDrawSamples.Height = (panTracks.Height / trackManager.Tracks.Count) - 1;
+            track.PanDrawSamples.Width = panTracks.ClientSize.Width;
+            track.PanDrawSamples.Height = Math.Max(1, panTracks.ClientSize.Height / trackManager.Tracks.Count - 1);
             track.PanDrawSamples.Top = top;
             track.PanDrawSamples.Invalidate();
             top += track.PanDrawSamples.Height;
         }
         trkDrawTimescale.Width = panTracks.Width;
         trkDrawTimescale.Left = PADDING;
-        lblPlayhead.Left = 0;
-        lblPlayhead.Height = panTracks.Height;
+        lblPlayhead.Top = 0;
+        lblPlayhead.Height = panTracks.ClientSize.Height;
         lblPlayhead.BringToFront();
 
         /// center the play button no matter what the window size is
         // button.x = (panTracks.X + .5*panTracks.width) - .5*button.width 
         btnPlay.Left = (panTracks.Left + panTracks.Width / 2) - btnPlay.Width / 2;
+        btnPlay.Top = timelineScroll.Bottom + 8;
+        trackManager.RefreshTimeline();
+    }
+
+    private void RefreshTimelineView()
+    {
+        var viewport = trackManager.Viewport;
+        trkDrawTimescale.Value = trkDrawTimescale.Minimum + (int)Math.Round(viewport.ZoomFraction *
+            (trkDrawTimescale.Maximum - trkDrawTimescale.Minimum));
+        int page = viewport.Duration <= 0 ? ScrollSteps + 1 :
+            Math.Clamp((int)Math.Round((ScrollSteps + 1) * Math.Min(1, viewport.VisibleDuration / viewport.Duration)), 1, ScrollSteps + 1);
+        timelineScroll.Minimum = 0;
+        timelineScroll.Maximum = ScrollSteps;
+        timelineScroll.LargeChange = page;
+        timelineScroll.SmallChange = Math.Max(1, page / 10);
+        int range = ScrollSteps - page + 1;
+        timelineScroll.Value = viewport.MaximumStart <= 0 ? 0 :
+            Math.Clamp((int)Math.Round(range * viewport.Start / viewport.MaximumStart), 0, range);
+        timelineScroll.Enabled = viewport.MaximumStart > 0;
+        btnFitSong.Enabled = viewport.Duration > 0;
+        lblDebug.Text = $"{viewport.Start:0.00}s – {viewport.TimeAt(viewport.Width):0.00}s  /  {viewport.Duration:0.00}s";
+        trackManager.RedrawAll();
+        UpdatePlayhead();
+    }
+
+    private void UpdatePlayhead()
+    {
+        double x = trackManager.Viewport.XAt(trackManager.PlaybackTime);
+        lblPlayhead.Visible = trackManager.Tracks.Count > 0 && x >= 0 && x < panTracks.ClientSize.Width;
+        if (lblPlayhead.Visible) lblPlayhead.Left = (int)x;
+    }
+
+    private sealed class WaveformPanel : Panel
+    {
+        public WaveformPanel()
+        {
+            DoubleBuffered = true;
+            ResizeRedraw = true;
+        }
     }
 
     private void panTracks_Paint(object sender, PaintEventArgs e)
