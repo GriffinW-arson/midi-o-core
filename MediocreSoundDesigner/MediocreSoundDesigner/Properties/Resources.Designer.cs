@@ -147,5 +147,29 @@ namespace MediocreSoundDesigner.Properties {
             }
         }
 
+        internal static System.Drawing.Bitmap transportSave {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("transportSave", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap transportSave2 {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("transportSave2", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap transportLoad {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("transportLoad", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap transportLoad2 {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("transportLoad2", resourceCulture);
+            }
+        }
+
     }
 }

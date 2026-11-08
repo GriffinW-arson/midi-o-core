@@ -27,6 +27,9 @@ effects apply to the whole selected track. Click without dragging or press Escap
 to clear the region; switching tracks also clears it. Region volume is a gain
 relative to its existing audio (100% leaves it unchanged). Removing silence
 closes gaps within that track and shifts its later audio earlier.
+**Edit → Delete** (or the Delete key) removes the highlighted region, closing the
+gap in that track. Without a region, it removes the selected track. Both actions
+ask for confirmation; No or Cancel leaves the audio unchanged.
 
 Build and run the timeline regression checks (requires the .NET SDK and Windows):
 

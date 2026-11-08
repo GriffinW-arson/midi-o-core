@@ -392,6 +392,31 @@ internal static class Program {
       Near(players[^1].ReadSample(), 0.25);
     });
 
+    Check("region deletion preserves outside frames, track offset, and other tracks", () => {
+      using var panel = new Panel { Width = 1000 };
+      using var manager = new TrackManager(panel);
+      float[] original = { 1, 10, 2, 20, 3, 30, 4, 40, 5, 50, 6, 60 };
+      var track = new Track((float[])original.Clone(), 10, 2);
+      var other = new Track(new float[] { 7, 8 }, 10);
+      manager.AddTrack(track);
+      manager.AddTrack(other);
+      track.ShiftSampleOver(0.3);
+      track.DeleteSelection();
+      Require(track.CloneSamples().SequenceEqual(original), "No selection must not delete audio implicitly.");
+      track.SetSelection(0.7, 0.5);
+      track.DeleteSelection();
+      Require(track.CloneSamples().SequenceEqual(new float[] { 1, 10, 2, 20, 5, 50, 6, 60 }));
+      Require(!track.HasSelection && manager.Tracks.Count == 2);
+      Near(track.StartTime, 0.3);
+      Near(track.Duration, 0.4);
+      Near(manager.Viewport.Duration, 0.7);
+      Require(other.CloneSamples().SequenceEqual(new float[] { 7, 8 }));
+      track.SetSelection(-100, 100);
+      track.DeleteSelection();
+      Require(track.CloneSamples().Length == 0 && !track.HasSelection);
+      Require(manager.Tracks.Contains(track), "Deleting all selected audio should retain the track itself.");
+    });
+
     Check("form layout and viewport integration", () => {
       using var form = new FrmMain();
       var field = typeof(FrmMain).GetField("trackManager", BindingFlags.Instance | BindingFlags.NonPublic);

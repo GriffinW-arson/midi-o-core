@@ -187,6 +187,17 @@ public class Track : IDisposable
         PanDrawSamples?.Invalidate();
     }
 
+    public void DeleteSelection()
+    {
+        if (!HasSelection) return;
+        int first = SelectionStartFrame * channels;
+        int end = SelectionEndFrame * channels;
+        var remaining = new float[samples.Length - (end - first)];
+        Array.Copy(samples, 0, remaining, 0, first);
+        Array.Copy(samples, end, remaining, first, samples.Length - end);
+        ReplaceSamples(remaining);
+    }
+
     public void DrawSelection(Graphics g, TimelineViewport viewport)
     {
         if (!HasSelection || PanDrawSamples is null) return;
@@ -231,13 +242,134 @@ public class Track : IDisposable
         }
         SamplesChanged();
     }
-    public void Trim()
-    {
-        // write data to/after current byte to 0
-        // cur_byte = outputDevice?.GetPosition()
-        // for all bytes before/after cur_byte: byte = 0000
-    }
-    public void AlterTimeScale(float scale)
+
+    // get the average volume of the track (absolute value to get rid of negatives)
+    // and apply it universally
+	public void Normalize()
+	{
+		var range = EditFrames;
+		int first = range.First * channels;
+		int end = range.End * channels;
+		int count = end - first;
+
+		if (count == 0) return;
+
+		double total = 0;
+		for (int i = first; i < end; i++)
+			total += Math.Abs(samples[i]);
+
+		float average = (float)(total / count);
+
+		for (int i = first; i < end; i++)
+			samples[i] = Math.Sign(samples[i]) * average;
+
+		SamplesChanged();
+	}
+
+	public void Phaser()
+	{
+		var range = EditFrames;
+		if (range.End <= range.First) return;
+
+		const int stages = 4;
+		const double rateHz = 0.4;
+		const double mix = 0.5;
+
+		double minFrequency = Math.Min(300.0, sampleRate * 0.05);
+		double maxFrequency = Math.Min(1800.0, sampleRate * 0.4);
+
+		double[,] previousInput = new double[channels, stages];
+		double[,] previousOutput = new double[channels, stages];
+
+		for (int frame = range.First; frame < range.End; frame++)
+		{
+			double time = (double)(frame - range.First) / sampleRate;
+			double sweep = 0.5 + 0.5 * Math.Sin(2 * Math.PI * rateHz * time);
+			double frequency = minFrequency *
+				Math.Pow(maxFrequency / minFrequency, sweep);
+
+			double tangent = Math.Tan(Math.PI * frequency / sampleRate);
+			double coefficient = (tangent - 1) / (tangent + 1);
+
+			for (int channel = 0; channel < channels; channel++)
+			{
+				int index = frame * channels + channel;
+				double dry = samples[index];
+				double wet = dry;
+
+				for (int stage = 0; stage < stages; stage++)
+				{
+					double output =
+						coefficient * wet +
+						previousInput[channel, stage] -
+						coefficient * previousOutput[channel, stage];
+
+					previousInput[channel, stage] = wet;
+					previousOutput[channel, stage] = output;
+					wet = output;
+				}
+
+				samples[index] = (float)(dry * (1 - mix) + wet * mix);
+			}
+		}
+
+		SamplesChanged();
+	}
+
+	public void Chorus()
+	{
+		var range = EditFrames;
+		if (range.End <= range.First) return;
+
+		const double rateHz = .8;
+		const double baseDelayMs = 20;
+		const double depthMs = 5;
+		const double mix = 0.35;
+
+		int bufferFrames = Math.Max(2,
+			(int)Math.Ceiling(
+				(baseDelayMs + depthMs) * sampleRate / 1000.0) + 2);
+
+		float[] delayBuffer = new float[bufferFrames * channels];
+
+		for (int frame = range.First; frame < range.End; frame++)
+		{
+			int localFrame = frame - range.First;
+			int writeFrame = localFrame % bufferFrames;
+
+			double time = (double)localFrame / sampleRate;
+			double delayMs = baseDelayMs +
+				depthMs * Math.Sin(2 * Math.PI * rateHz * time);
+
+			double readPosition =
+				writeFrame - delayMs * sampleRate / 1000.0;
+
+			while (readPosition < 0)
+				readPosition += bufferFrames;
+
+			int first = (int)Math.Floor(readPosition);
+			int second = (first + 1) % bufferFrames;
+			double fraction = readPosition - first;
+
+			for (int channel = 0; channel < channels; channel++)
+			{
+				int index = frame * channels + channel;
+				float dry = samples[index];
+
+				delayBuffer[writeFrame * channels + channel] = dry;
+
+				double wet =
+					delayBuffer[first * channels + channel] * (1 - fraction) +
+					delayBuffer[second * channels + channel] * fraction;
+
+				samples[index] = (float)(dry * (1 - mix) + wet * mix);
+			}
+		}
+
+		SamplesChanged();
+	}
+
+	public void AlterTimeScale(float scale)
     {
         // sample rate times scale?
     }

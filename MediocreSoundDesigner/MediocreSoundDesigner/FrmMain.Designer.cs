@@ -42,12 +42,19 @@
 			menuFileSave = new ToolStripMenuItem();
 			exportToToolStripMenuItem = new ToolStripMenuItem();
 			menuEdit = new ToolStripMenuItem();
+			menuEditDelete = new ToolStripMenuItem();
+			toolStripSeparator3 = new ToolStripSeparator();
 			menuEditFlip = new ToolStripMenuItem();
 			menuEditReverse = new ToolStripMenuItem();
 			menuEditVolume = new ToolStripMenuItem();
 			menuEditEliminateSilence = new ToolStripMenuItem();
+			toolStripSeparator4 = new ToolStripSeparator();
+			normalizeToolStripMenuItem = new ToolStripMenuItem();
+			phaserToolStripMenuItem = new ToolStripMenuItem();
+			chorusToolStripMenuItem = new ToolStripMenuItem();
 			menuGen = new ToolStripMenuItem();
 			menuGenRecord = new ToolStripMenuItem();
+			toolStripSeparator1 = new ToolStripSeparator();
 			menuGenNoise = new ToolStripMenuItem();
 			menuGenGradientNoise = new ToolStripMenuItem();
 			viewToolStripMenuItem = new ToolStripMenuItem();
@@ -57,8 +64,8 @@
 			toolStripMenuItem3 = new ToolStripMenuItem();
 			toolStripMenuItem4 = new ToolStripMenuItem();
 			toolStripMenuItem5 = new ToolStripMenuItem();
-			toolStripSeparator1 = new ToolStripSeparator();
 			followPlayheadToolStripMenuItem = new ToolStripMenuItem();
+			toolStripSeparator2 = new ToolStripSeparator();
 			appearanceToolStripMenuItem = new ToolStripMenuItem();
 			defaultToolStripMenuItem = new ToolStripMenuItem();
 			redToolStripMenuItem = new ToolStripMenuItem();
@@ -69,6 +76,8 @@
 			btnPlay = new Button();
 			btnReset = new Button();
 			btnEnd = new Button();
+			btnSave = new Button();
+			btnLoad = new Button();
 			transportFeedback = new System.Windows.Forms.Timer(components);
 			tmrUpdate = new System.Windows.Forms.Timer(components);
 			sfdSaveFile = new SaveFileDialog();
@@ -139,61 +148,101 @@
 			// menuFileOpen
 			// 
 			menuFileOpen.Name = "menuFileOpen";
-			menuFileOpen.Size = new Size(180, 22);
+			menuFileOpen.Size = new Size(132, 22);
 			menuFileOpen.Text = "Open...";
 			menuFileOpen.Click += menuFileOpen_Click;
 			// 
 			// menuFileSave
 			// 
 			menuFileSave.Name = "menuFileSave";
-			menuFileSave.Size = new Size(180, 22);
+			menuFileSave.Size = new Size(132, 22);
 			menuFileSave.Text = "Save...";
 			menuFileSave.Click += menuFileSave_Click;
 			// 
 			// exportToToolStripMenuItem
 			// 
 			exportToToolStripMenuItem.Name = "exportToToolStripMenuItem";
-			exportToToolStripMenuItem.Size = new Size(180, 22);
+			exportToToolStripMenuItem.Size = new Size(132, 22);
 			exportToToolStripMenuItem.Text = "Export To...";
 			// 
 			// menuEdit
 			// 
-			menuEdit.DropDownItems.AddRange(new ToolStripItem[] { menuEditFlip, menuEditReverse, menuEditVolume, menuEditEliminateSilence });
+			menuEdit.DropDownItems.AddRange(new ToolStripItem[] { menuEditDelete, toolStripSeparator3, menuEditFlip, menuEditReverse, menuEditVolume, menuEditEliminateSilence, toolStripSeparator4, normalizeToolStripMenuItem, phaserToolStripMenuItem, chorusToolStripMenuItem });
 			menuEdit.Name = "menuEdit";
 			menuEdit.Size = new Size(39, 20);
 			menuEdit.Text = "E&dit";
 			// 
+			// menuEditDelete
+			// 
+			menuEditDelete.Enabled = false;
+			menuEditDelete.Name = "menuEditDelete";
+			menuEditDelete.ShortcutKeys = Keys.Delete;
+			menuEditDelete.Size = new Size(180, 22);
+			menuEditDelete.Text = "Delete";
+			menuEditDelete.Click += menuEditDelete_Click;
+			// 
+			// toolStripSeparator3
+			// 
+			toolStripSeparator3.Name = "toolStripSeparator3";
+			toolStripSeparator3.Size = new Size(177, 6);
+			// 
 			// menuEditFlip
 			// 
 			menuEditFlip.Name = "menuEditFlip";
-			menuEditFlip.Size = new Size(172, 22);
+			menuEditFlip.Size = new Size(180, 22);
 			menuEditFlip.Text = "Flip";
 			menuEditFlip.Click += menuEditFlip_Click;
 			// 
 			// menuEditReverse
 			// 
 			menuEditReverse.Name = "menuEditReverse";
-			menuEditReverse.Size = new Size(172, 22);
+			menuEditReverse.Size = new Size(180, 22);
 			menuEditReverse.Text = "Reverse";
 			menuEditReverse.Click += menuEditReverse_Click;
 			// 
 			// menuEditVolume
 			// 
 			menuEditVolume.Name = "menuEditVolume";
-			menuEditVolume.Size = new Size(172, 22);
+			menuEditVolume.Size = new Size(180, 22);
 			menuEditVolume.Text = "Alter Volume...";
 			menuEditVolume.Click += menuEditVolume_Click;
 			// 
 			// menuEditEliminateSilence
 			// 
 			menuEditEliminateSilence.Name = "menuEditEliminateSilence";
-			menuEditEliminateSilence.Size = new Size(172, 22);
+			menuEditEliminateSilence.Size = new Size(180, 22);
 			menuEditEliminateSilence.Text = "Eliminate Silence...";
 			menuEditEliminateSilence.Click += menuEditEliminateSilence_Click;
 			// 
+			// toolStripSeparator4
+			// 
+			toolStripSeparator4.Name = "toolStripSeparator4";
+			toolStripSeparator4.Size = new Size(177, 6);
+			// 
+			// normalizeToolStripMenuItem
+			// 
+			normalizeToolStripMenuItem.Name = "normalizeToolStripMenuItem";
+			normalizeToolStripMenuItem.Size = new Size(180, 22);
+			normalizeToolStripMenuItem.Text = "Normalize";
+			normalizeToolStripMenuItem.Click += normalizeToolStripMenuItem_Click;
+			// 
+			// phaserToolStripMenuItem
+			// 
+			phaserToolStripMenuItem.Name = "phaserToolStripMenuItem";
+			phaserToolStripMenuItem.Size = new Size(180, 22);
+			phaserToolStripMenuItem.Text = "Phaser";
+			phaserToolStripMenuItem.Click += phaserToolStripMenuItem_Click;
+			// 
+			// chorusToolStripMenuItem
+			// 
+			chorusToolStripMenuItem.Name = "chorusToolStripMenuItem";
+			chorusToolStripMenuItem.Size = new Size(180, 22);
+			chorusToolStripMenuItem.Text = "Chorus";
+			chorusToolStripMenuItem.Click += chorusToolStripMenuItem_Click;
+			// 
 			// menuGen
 			// 
-			menuGen.DropDownItems.AddRange(new ToolStripItem[] { menuGenRecord, menuGenNoise, menuGenGradientNoise });
+			menuGen.DropDownItems.AddRange(new ToolStripItem[] { menuGenRecord, toolStripSeparator1, menuGenNoise, menuGenGradientNoise });
 			menuGen.Name = "menuGen";
 			menuGen.Size = new Size(66, 20);
 			menuGen.Text = "&Generate";
@@ -204,6 +253,11 @@
 			menuGenRecord.Size = new Size(152, 22);
 			menuGenRecord.Text = "Record...";
 			menuGenRecord.Click += menuGenRecord_Click;
+			// 
+			// toolStripSeparator1
+			// 
+			toolStripSeparator1.Name = "toolStripSeparator1";
+			toolStripSeparator1.Size = new Size(149, 6);
 			// 
 			// menuGenNoise
 			// 
@@ -221,7 +275,7 @@
 			// 
 			// viewToolStripMenuItem
 			// 
-			viewToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { zoomToolStripMenuItem, toolStripSeparator1, followPlayheadToolStripMenuItem, appearanceToolStripMenuItem });
+			viewToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { zoomToolStripMenuItem, followPlayheadToolStripMenuItem, toolStripSeparator2, appearanceToolStripMenuItem });
 			viewToolStripMenuItem.Name = "viewToolStripMenuItem";
 			viewToolStripMenuItem.Size = new Size(44, 20);
 			viewToolStripMenuItem.Text = "View";
@@ -268,17 +322,17 @@
 			toolStripMenuItem5.Text = "1%";
 			toolStripMenuItem5.Click += zoomHundredth_Click;
 			// 
-			// toolStripSeparator1
-			// 
-			toolStripSeparator1.Name = "toolStripSeparator1";
-			toolStripSeparator1.Size = new Size(157, 6);
-			// 
 			// followPlayheadToolStripMenuItem
 			// 
 			followPlayheadToolStripMenuItem.Name = "followPlayheadToolStripMenuItem";
 			followPlayheadToolStripMenuItem.Size = new Size(160, 22);
 			followPlayheadToolStripMenuItem.Text = "Follow Playhead";
 			followPlayheadToolStripMenuItem.Click += followPlayheadToolStripMenuItem_Click;
+			// 
+			// toolStripSeparator2
+			// 
+			toolStripSeparator2.Name = "toolStripSeparator2";
+			toolStripSeparator2.Size = new Size(157, 6);
 			// 
 			// appearanceToolStripMenuItem
 			// 
@@ -387,6 +441,44 @@
 			btnEnd.UseVisualStyleBackColor = false;
 			btnEnd.Click += btnEnd_Click;
 			btnEnd.MouseDown += transportButton_MouseDown;
+			//
+			// btnSave
+			//
+			btnSave.AccessibleName = "Save audio";
+			btnSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+			btnSave.BackColor = Color.Transparent;
+			btnSave.BackgroundImage = Properties.Resources.transportSave;
+			btnSave.BackgroundImageLayout = ImageLayout.Zoom;
+			btnSave.FlatAppearance.BorderSize = 0;
+			btnSave.FlatAppearance.MouseDownBackColor = Color.Transparent;
+			btnSave.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			btnSave.FlatStyle = FlatStyle.Flat;
+			btnSave.Location = new Point(1461, 609);
+			btnSave.Name = "btnSave";
+			btnSave.Size = new Size(60, 60);
+			btnSave.TabIndex = 13;
+			btnSave.UseVisualStyleBackColor = false;
+			btnSave.Click += btnSave_Click;
+			btnSave.MouseDown += transportButton_MouseDown;
+			//
+			// btnLoad
+			//
+			btnLoad.AccessibleName = "Load audio";
+			btnLoad.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+			btnLoad.BackColor = Color.Transparent;
+			btnLoad.BackgroundImage = Properties.Resources.transportLoad;
+			btnLoad.BackgroundImageLayout = ImageLayout.Zoom;
+			btnLoad.FlatAppearance.BorderSize = 0;
+			btnLoad.FlatAppearance.MouseDownBackColor = Color.Transparent;
+			btnLoad.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			btnLoad.FlatStyle = FlatStyle.Flat;
+			btnLoad.Location = new Point(1529, 609);
+			btnLoad.Name = "btnLoad";
+			btnLoad.Size = new Size(60, 60);
+			btnLoad.TabIndex = 14;
+			btnLoad.UseVisualStyleBackColor = false;
+			btnLoad.Click += btnLoad_Click;
+			btnLoad.MouseDown += transportButton_MouseDown;
 			// 
 			// transportFeedback
 			// 
@@ -463,6 +555,8 @@
 			Controls.Add(btnPlay);
 			Controls.Add(btnReset);
 			Controls.Add(btnEnd);
+			Controls.Add(btnSave);
+			Controls.Add(btnLoad);
 			Controls.Add(lblDebug);
 			Controls.Add(panTracks);
 			Controls.Add(menu);
@@ -494,6 +588,8 @@
     private Button btnPlay;
     private Button btnReset;
     private Button btnEnd;
+    private Button btnSave;
+    private Button btnLoad;
     private System.Windows.Forms.Timer transportFeedback;
     private ToolStripMenuItem menuEditVolume;
     private ToolStripMenuItem menuEditReverse;
@@ -509,6 +605,7 @@
     private TrackBar trkDrawTimescale;
     private ColorDialog colorDialog;
     private ToolStripMenuItem menuEditEliminateSilence;
+    private ToolStripMenuItem menuEditDelete;
     private Label lblPlayhead;
     private ToolStripMenuItem menuGenRecord;
         private ToolStripMenuItem exportToToolStripMenuItem;
@@ -519,7 +616,6 @@
 		private ToolStripMenuItem toolStripMenuItem3;
 		private ToolStripMenuItem toolStripMenuItem4;
 		private ToolStripMenuItem toolStripMenuItem5;
-		private ToolStripSeparator toolStripSeparator1;
 		private ToolStripMenuItem followPlayheadToolStripMenuItem;
         private ToolStripMenuItem appearanceToolStripMenuItem;
         private ToolStripMenuItem defaultToolStripMenuItem;
@@ -528,5 +624,12 @@
         private ToolStripMenuItem blueToolStripMenuItem;
         private ToolStripMenuItem darkToolStripMenuItem;
         private ToolStripMenuItem lightToolStripMenuItem;
-    }
+		private ToolStripSeparator toolStripSeparator2;
+		private ToolStripSeparator toolStripSeparator1;
+		private ToolStripSeparator toolStripSeparator3;
+		private ToolStripMenuItem normalizeToolStripMenuItem;
+		private ToolStripSeparator toolStripSeparator4;
+		private ToolStripMenuItem phaserToolStripMenuItem;
+		private ToolStripMenuItem chorusToolStripMenuItem;
+	}
 }
