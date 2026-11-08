@@ -31,6 +31,7 @@
 		private void InitializeComponent()
 		{
 			components = new System.ComponentModel.Container();
+			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMain));
 			panTracks = new Panel();
 			lblPlayhead = new Label();
 			lblDebug = new Label();
@@ -138,21 +139,21 @@
 			// menuFileOpen
 			// 
 			menuFileOpen.Name = "menuFileOpen";
-			menuFileOpen.Size = new Size(132, 22);
+			menuFileOpen.Size = new Size(180, 22);
 			menuFileOpen.Text = "Open...";
 			menuFileOpen.Click += menuFileOpen_Click;
 			// 
 			// menuFileSave
 			// 
 			menuFileSave.Name = "menuFileSave";
-			menuFileSave.Size = new Size(132, 22);
+			menuFileSave.Size = new Size(180, 22);
 			menuFileSave.Text = "Save...";
 			menuFileSave.Click += menuFileSave_Click;
 			// 
 			// exportToToolStripMenuItem
 			// 
 			exportToToolStripMenuItem.Name = "exportToToolStripMenuItem";
-			exportToToolStripMenuItem.Size = new Size(132, 22);
+			exportToToolStripMenuItem.Size = new Size(180, 22);
 			exportToToolStripMenuItem.Text = "Export To...";
 			// 
 			// menuEdit
@@ -331,6 +332,7 @@
 			// 
 			// btnPlay
 			// 
+			btnPlay.AccessibleName = "Play";
 			btnPlay.Anchor = AnchorStyles.Bottom;
 			btnPlay.BackColor = Color.Transparent;
 			btnPlay.BackgroundImage = Properties.Resources.transportPlay;
@@ -343,52 +345,51 @@
 			btnPlay.Location = new Point(772, 609);
 			btnPlay.Name = "btnPlay";
 			btnPlay.Size = new Size(60, 60);
-			btnPlay.AccessibleName = "Play";
 			btnPlay.TabIndex = 6;
 			btnPlay.UseVisualStyleBackColor = false;
 			btnPlay.Click += btnPlay_Click;
 			btnPlay.MouseDown += transportButton_MouseDown;
-			//
+			// 
 			// btnReset
-			//
+			// 
+			btnReset.AccessibleName = "Reset to beginning";
 			btnReset.Anchor = AnchorStyles.Bottom;
 			btnReset.BackColor = Color.Transparent;
 			btnReset.BackgroundImage = Properties.Resources.transportReset;
 			btnReset.BackgroundImageLayout = ImageLayout.Zoom;
-			btnReset.FlatStyle = FlatStyle.Flat;
 			btnReset.FlatAppearance.BorderSize = 0;
 			btnReset.FlatAppearance.MouseDownBackColor = Color.Transparent;
 			btnReset.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			btnReset.FlatStyle = FlatStyle.Flat;
 			btnReset.Location = new Point(704, 609);
 			btnReset.Name = "btnReset";
 			btnReset.Size = new Size(60, 60);
 			btnReset.TabIndex = 5;
-			btnReset.AccessibleName = "Reset to beginning";
 			btnReset.UseVisualStyleBackColor = false;
 			btnReset.Click += btnReset_Click;
 			btnReset.MouseDown += transportButton_MouseDown;
-			//
+			// 
 			// btnEnd
-			//
+			// 
+			btnEnd.AccessibleName = "Go to end";
 			btnEnd.Anchor = AnchorStyles.Bottom;
 			btnEnd.BackColor = Color.Transparent;
 			btnEnd.BackgroundImage = Properties.Resources.transportEnd;
 			btnEnd.BackgroundImageLayout = ImageLayout.Zoom;
-			btnEnd.FlatStyle = FlatStyle.Flat;
 			btnEnd.FlatAppearance.BorderSize = 0;
 			btnEnd.FlatAppearance.MouseDownBackColor = Color.Transparent;
 			btnEnd.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			btnEnd.FlatStyle = FlatStyle.Flat;
 			btnEnd.Location = new Point(840, 609);
 			btnEnd.Name = "btnEnd";
 			btnEnd.Size = new Size(60, 60);
 			btnEnd.TabIndex = 8;
-			btnEnd.AccessibleName = "Go to end";
 			btnEnd.UseVisualStyleBackColor = false;
 			btnEnd.Click += btnEnd_Click;
 			btnEnd.MouseDown += transportButton_MouseDown;
-			//
+			// 
 			// transportFeedback
-			//
+			// 
 			transportFeedback.Interval = 80;
 			transportFeedback.Tick += transportFeedback_Tick;
 			// 
@@ -425,6 +426,7 @@
 			// 
 			// lblPlayheadTime
 			// 
+			lblPlayheadTime.AccessibleName = "Current playhead time";
 			lblPlayheadTime.Anchor = AnchorStyles.Bottom;
 			lblPlayheadTime.Font = new Font("Consolas", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
 			lblPlayheadTime.ForeColor = Color.White;
@@ -434,7 +436,6 @@
 			lblPlayheadTime.TabIndex = 11;
 			lblPlayheadTime.Text = "00:00:00.000";
 			lblPlayheadTime.TextAlign = ContentAlignment.MiddleCenter;
-			lblPlayheadTime.AccessibleName = "Current playhead time";
 			// 
 			// chkFollowPlayback
 			// 
@@ -465,6 +466,7 @@
 			Controls.Add(lblDebug);
 			Controls.Add(panTracks);
 			Controls.Add(menu);
+			Icon = (Icon)resources.GetObject("$this.Icon");
 			KeyPreview = true;
 			MainMenuStrip = menu;
 			MinimumSize = new Size(720, 500);
