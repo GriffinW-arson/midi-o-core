@@ -313,6 +313,85 @@ internal static class Program {
       Near(view.Start, 0);
     });
 
+    Check("selected flip and reverse preserve outside samples and stereo channels", () => {
+      float[] original = Enumerable.Range(1, 10).SelectMany(i => new[] { (float)i, i * 10f }).ToArray();
+      using var track = new Track((float[])original.Clone(), 10, 2);
+      track.ShiftSampleOver(2);
+      track.SetSelection(2.6, 2.2); // Backward drag, accounting for the track offset.
+      Require(track.SelectionStartFrame == 2 && track.SelectionEndFrame == 6);
+      track.Flip();
+      float[] flipped = track.CloneSamples();
+      for (int i = 0; i < original.Length; i++) Near(flipped[i], i >= 4 && i < 12 ? -original[i] : original[i]);
+      track.Flip();
+      track.Reverse();
+      float[] reversed = track.CloneSamples();
+      for (int frame = 0; frame < 10; frame++)
+        for (int channel = 0; channel < 2; channel++) {
+          int source = frame >= 2 && frame < 6 ? 7 - frame : frame;
+          Near(reversed[frame * 2 + channel], original[source * 2 + channel]);
+        }
+      track.ShiftSampleOver(1);
+      Require(track.SelectionStartFrame == 2 && track.SelectionEndFrame == 6);
+      track.ClearSelection();
+      track.Flip();
+      for (int i = 0; i < original.Length; i++) Near(track.CloneSamples()[i], -reversed[i]);
+    });
+
+    Check("region volume uses local gain while preserving whole-track volume", () => {
+      using var track = new Track(Enumerable.Repeat(1f, 10).ToArray(), 10);
+      track.SetVolume(0.5f);
+      track.SetSelection(0.2, 0.5);
+      track.SetVolume(2);
+      Near(track.Volume, 0.5);
+      float[] output = track.GetAdjustedSamples();
+      for (int i = 0; i < output.Length; i++) Near(output[i], i >= 2 && i < 5 ? 1 : 0.5);
+      track.ReplaceSamples(new float[3]);
+      Require(!track.HasSelection);
+    });
+
+    Check("silence removal edits only the selected interval and keeps complete frames", () => {
+      float[] data = { 1, 10, 2, 20, 0, 0, 0, 0, 3, 30, 0, 0, 4, 40, 5, 50 };
+      using var track = new Track(data, 10, 2);
+      track.SetSelection(0.2, 0.7);
+      track.EliminateSilence(SampleRegion.BEGINNING_ONLY, 0.15f, 0.01f);
+      float[] expected = { 1, 10, 2, 20, 3, 30, 0, 0, 4, 40, 5, 50 };
+      Require(track.CloneSamples().SequenceEqual(expected));
+      Require(track.SelectionStartFrame == 2 && track.SelectionEndFrame == 5);
+      Near(track.Duration, 0.6);
+      track.EliminateSilence(SampleRegion.ANYWHERE, 0.05f, 0.01f);
+      Require(track.CloneSamples().SequenceEqual(new float[] { 1, 10, 2, 20, 3, 30, 4, 40, 5, 50 }));
+      Require(track.SelectionEndFrame == 4);
+      // One silent channel must not cause half of a stereo frame to be removed.
+      using var stereo = new Track(new float[] { 0, 1, 0, 0, 2, 0 }, 10, 2);
+      stereo.EliminateSilence(SampleRegion.ANYWHERE, 0.05f, 0.01f);
+      Require(stereo.CloneSamples().SequenceEqual(new float[] { 0, 1, 2, 0 }));
+      foreach (var mode in new[] { SampleRegion.END_ONLY, SampleRegion.BEGINNING_AND_END }) {
+        using var ends = new Track(new float[] { 9, 0, 0, 1, 0, 0, 8 }, 10);
+        ends.SetSelection(0.1, 0.6);
+        ends.EliminateSilence(mode, 0.2f, 0.01f);
+        float[] result = mode == SampleRegion.END_ONLY ? new float[] { 9, 0, 0, 1, 8 } : new float[] { 9, 1, 8 };
+        Require(ends.CloneSamples().SequenceEqual(result));
+      }
+    });
+
+    Check("selection changes do not restart playback, but selected effects update the mix", () => {
+      using var panel = new Panel { Width = 1000 };
+      var players = new List<TestWavePlayer>();
+      using var manager = new TrackManager(panel, () => {
+        var player = new TestWavePlayer(); players.Add(player); return player;
+      });
+      var track = new Track(Enumerable.Repeat(0.25f, 44100).ToArray());
+      manager.AddTrack(track);
+      manager.PlayAll();
+      track.SetSelection(0.2, 0.5);
+      Require(players.Count == 1 && !players[0].IsDisposed);
+      manager.Seek(0.3);
+      track.Flip();
+      Near(players[^1].ReadSample(), -0.25);
+      manager.Seek(0.7);
+      Near(players[^1].ReadSample(), 0.25);
+    });
+
     Check("form layout and viewport integration", () => {
       using var form = new FrmMain();
       var field = typeof(FrmMain).GetField("trackManager", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -378,6 +457,28 @@ internal static class Program {
       Near(playhead.Left, 0);
       Require(reset.Top >= track.PanDrawSamples.Parent.Bottom);
       typeof(FrmMain).GetMethod("transportFeedback_Tick", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, new object[] { form, EventArgs.Empty });
+      var waveform = longTrack.PanDrawSamples;
+      var mouseDown = typeof(Control).GetMethod("OnMouseDown", BindingFlags.Instance | BindingFlags.NonPublic);
+      var mouseMove = typeof(Control).GetMethod("OnMouseMove", BindingFlags.Instance | BindingFlags.NonPublic);
+      var mouseUp = typeof(Control).GetMethod("OnMouseUp", BindingFlags.Instance | BindingFlags.NonPublic);
+      mouseDown.Invoke(waveform, new object[] { new MouseEventArgs(MouseButtons.Left, 1, 450, 50, 0) });
+      // Drag backwards and vertically beyond the row: capture keeps it on this track.
+      mouseMove.Invoke(waveform, new object[] { new MouseEventArgs(MouseButtons.Left, 0, 120, -30, 0) });
+      mouseUp.Invoke(waveform, new object[] { new MouseEventArgs(MouseButtons.Left, 1, 120, -30, 0) });
+      Require(longTrack.HasSelection && !track.HasSelection && !waveform.Capture);
+      Require(manager.SelectedTrack == longTrack);
+      Near(longTrack.SelectionStartFrame, Math.Round(manager.Viewport.TimeAt(120) * longTrack.SampleRate));
+      Near(longTrack.SelectionEndFrame, Math.Round(manager.Viewport.TimeAt(450) * longTrack.SampleRate));
+      int selectedFirst = longTrack.SelectionStartFrame, selectedEnd = longTrack.SelectionEndFrame;
+      manager.Viewport.SetZoom(0.8);
+      Require(longTrack.SelectionStartFrame == selectedFirst && longTrack.SelectionEndFrame == selectedEnd);
+      manager.SelectTrack(track);
+      Require(!longTrack.HasSelection);
+      manager.SelectTrack(longTrack);
+      mouseDown.Invoke(waveform, new object[] { new MouseEventArgs(MouseButtons.Left, 1, 120, 50, 0) });
+      mouseMove.Invoke(waveform, new object[] { new MouseEventArgs(MouseButtons.Left, 0, 450, 50, 0) });
+      mouseUp.Invoke(waveform, new object[] { new MouseEventArgs(MouseButtons.Left, 1, 450, 50, 0) });
+      Require(longTrack.HasSelection);
       using var preview = new Bitmap(form.ClientSize.Width, form.ClientSize.Height);
       using (var graphics = Graphics.FromImage(preview)) graphics.Clear(Color.Black);
       RenderControls(form, preview, Point.Empty);

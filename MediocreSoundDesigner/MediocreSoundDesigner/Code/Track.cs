@@ -47,6 +47,11 @@ public class Track : IDisposable
     public int SampleRate => sampleRate;
     public int Channels => channels; // stereo audio
     public event EventHandler Changed;
+    public int SelectionStartFrame { get; private set; }
+    public int SelectionEndFrame { get; private set; }
+    public bool HasSelection => SelectionEndFrame > SelectionStartFrame;
+    private (int First, int End) EditFrames => HasSelection
+        ? (SelectionStartFrame, SelectionEndFrame) : (0, samples.Length / channels);
     public bool IsDisabled { get; private set; }
     public Panel PanDrawSamples { get; private set; }
     public float Volume { get; private set; }
@@ -163,7 +168,38 @@ public class Track : IDisposable
     public void ReplaceSamples(float[] samples)
     {
         this.samples = samples;
+        ClearSelection();
         SamplesChanged();
+    }
+
+    public void SetSelection(double firstTime, double endTime)
+    {
+        int frames = samples.Length / channels;
+        if (firstTime == endTime) { ClearSelection(); return; }
+        SelectionStartFrame = (int)Math.Clamp(Math.Round((Math.Min(firstTime, endTime) - StartTime) * sampleRate), 0, frames);
+        SelectionEndFrame = (int)Math.Clamp(Math.Round((Math.Max(firstTime, endTime) - StartTime) * sampleRate), 0, frames);
+        PanDrawSamples?.Invalidate();
+    }
+
+    public void ClearSelection()
+    {
+        SelectionStartFrame = SelectionEndFrame = 0;
+        PanDrawSamples?.Invalidate();
+    }
+
+    public void DrawSelection(Graphics g, TimelineViewport viewport)
+    {
+        if (!HasSelection || PanDrawSamples is null) return;
+        double left = viewport.XAt(StartTime + (double)SelectionStartFrame / sampleRate);
+        double right = viewport.XAt(StartTime + (double)SelectionEndFrame / sampleRate);
+        float x = (float)Math.Clamp(left, 0, PanDrawSamples.ClientSize.Width);
+        float end = (float)Math.Clamp(right, 0, PanDrawSamples.ClientSize.Width);
+        if (end <= x) return;
+        Color color = FrmMain.ActiveProfile.DefaultWaveformColor;
+        using var fill = new SolidBrush(Color.FromArgb(55, color));
+        using var border = new Pen(color);
+        g.FillRectangle(fill, x, 0, end - x, PanDrawSamples.ClientSize.Height);
+        g.DrawRectangle(border, x, 0, Math.Max(0, end - x - 1), Math.Max(0, PanDrawSamples.ClientSize.Height - 1));
     }
     private void SamplesChanged()
     {
@@ -177,17 +213,19 @@ public class Track : IDisposable
     }
     public void Reverse()
     {
-        for (int i = 0; i < samples.Length / 2; i++)
+        var range = EditFrames;
+        for (int left = range.First, right = range.End - 1; left < right; left++, right--)
         {
-            var temp = samples[i];
-            samples[i] = samples[samples.Length - 1 - i];
-            samples[samples.Length - 1 - i] = temp;
+            for (int channel = 0; channel < channels; channel++)
+                (samples[left * channels + channel], samples[right * channels + channel]) =
+                    (samples[right * channels + channel], samples[left * channels + channel]);
         }
         SamplesChanged();
     }
     public void Flip()
     {
-        for (int i = 0; i < samples.Length; i++)
+        var range = EditFrames;
+        for (int i = range.First * channels; i < range.End * channels; i++)
         {
             samples[i] *= -1;
         }
@@ -205,78 +243,53 @@ public class Track : IDisposable
     }
     public void SetVolume(float newVolume)
     {
+        if (HasSelection)
+        {
+            for (int i = SelectionStartFrame * channels; i < SelectionEndFrame * channels; i++)
+                samples[i] *= newVolume;
+            SamplesChanged();
+            return;
+        }
         Volume = newVolume;
         OnChanged();
     }
     public void EliminateSilence(SampleRegion region, float minDuration, float thres)
     {
-        float[] newSamples = CloneSamples();
-        if (region is SampleRegion.BEGINNING_ONLY or SampleRegion.BEGINNING_AND_END)
+        var range = EditFrames;
+        bool selected = HasSelection;
+        var kept = new List<float>();
+        int frame = range.First;
+        while (frame < range.End)
         {
-            int silentDurationInNumSamples = 0;
-            for (int i = 0; i < newSamples.Length; i++)
+            int first = frame;
+            bool silent = IsSilentFrame(frame, thres);
+            if (silent)
             {
-                if (Math.Abs(newSamples[i]) <= thres)
-                {
-                    silentDurationInNumSamples++;
-                }
-                else
-                {
-                    break;
-                }
+                while (frame < range.End && IsSilentFrame(frame, thres)) frame++;
             }
-            if ((float)silentDurationInNumSamples / (sampleRate * channels) >= minDuration)
-            {
-                newSamples = newSamples[silentDurationInNumSamples..];
-            }
+            else frame++;
+            bool eligible = region == SampleRegion.ANYWHERE ||
+                (first == range.First && region is SampleRegion.BEGINNING_ONLY or SampleRegion.BEGINNING_AND_END) ||
+                (frame == range.End && region is SampleRegion.END_ONLY or SampleRegion.BEGINNING_AND_END);
+            bool remove = silent && eligible && (float)(frame - first) / sampleRate >= minDuration;
+            if (!remove)
+                for (int i = first * channels; i < frame * channels; i++) kept.Add(samples[i]);
         }
-        if (region is SampleRegion.END_ONLY or SampleRegion.BEGINNING_AND_END)
-        {
-            int silentDurationInNumSamples = 0;
-            for (int i = newSamples.Length - 1; i >= 0; i--)
-            {
-                if (Math.Abs(newSamples[i]) <= thres)
-                {
-                    silentDurationInNumSamples++;
-                }
-                else
-                {
-                    break;
-                }
-            }
-            if ((float)silentDurationInNumSamples / (sampleRate * channels) >= minDuration)
-            {
-                newSamples = newSamples[0..^silentDurationInNumSamples];
-            }
-        }
-        if (region is SampleRegion.ANYWHERE)
-        {
-            int silentDurationInNumSamples = 0;
-            int silentRegionStart = 0;
-            int i;
-            for (i = 0; i < newSamples.Length; i++)
-            {
-                if (Math.Abs(newSamples[i]) <= thres)
-                {
-                    silentDurationInNumSamples++;
-                }
-                else
-                {
-                    if ((float)silentDurationInNumSamples / (sampleRate * channels) >= minDuration)
-                    {
-                        newSamples = [.. newSamples[0..silentRegionStart], .. newSamples[i..]];
-                        i = 0;
-                    }
-                    silentRegionStart = i + 1;
-                    silentDurationInNumSamples = 0;
-                }
-            }
-            if ((float)silentDurationInNumSamples / (sampleRate * channels) >= minDuration)
-            {
-                newSamples = [.. newSamples[0..silentRegionStart], .. newSamples[i..]];
-            }
-        }
-        ReplaceSamples(newSamples);
+        int firstValue = range.First * channels, endValue = range.End * channels;
+        var replacement = new float[samples.Length - (endValue - firstValue) + kept.Count];
+        Array.Copy(samples, 0, replacement, 0, firstValue);
+        kept.CopyTo(replacement, firstValue);
+        Array.Copy(samples, endValue, replacement, firstValue + kept.Count, samples.Length - endValue);
+        samples = replacement;
+        if (selected) SelectionEndFrame = SelectionStartFrame + kept.Count / channels;
+        SamplesChanged();
+    }
+
+    private bool IsSilentFrame(int frame, float threshold)
+    {
+        for (int channel = 0; channel < channels; channel++)
+            if (Math.Abs(samples[frame * channels + channel]) > threshold) return false;
+        return true;
     }
 
     // play

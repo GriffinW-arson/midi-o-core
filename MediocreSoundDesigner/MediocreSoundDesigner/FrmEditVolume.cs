@@ -6,7 +6,8 @@ public partial class FrmEditVolume : FrmEditMaster {
   }
 
   protected override void Init() {
-    nudVolume.Value = (decimal)(track.Volume * 100.0f);
+    nudVolume.Value = track.HasSelection ? 100 : (decimal)(track.Volume * 100.0f);
+    if (track.HasSelection) Text += " — selected region";
   }
 
   protected override void Apply() {

@@ -66,6 +66,10 @@ public partial class FrmMain : Form, IMessageFilter
     private TrackManager trackManager;
     private const int ScrollSteps = 1_000_000;
     private Button pressedTransportButton;
+    private Track regionDragTrack;
+    private double regionAnchorTime;
+    private int regionAnchorX;
+    private bool regionDragMoved;
     private static readonly Image ResetIcon = Resources.transportReset;
     private static readonly Image ResetPressedIcon = Resources.transportReset2;
     private static readonly Image PlayIcon = Resources.transportPlay;
@@ -176,6 +180,12 @@ public partial class FrmMain : Form, IMessageFilter
     {
         if (trackManager.SelectedTrack is not null)
         {
+            if (keyData == Keys.Escape)
+            {
+                EndRegionDrag();
+                trackManager.SelectedTrack.ClearSelection();
+                return true;
+            }
             if (keyData == Keys.Left)
             {
                 trackManager.SelectedTrack.ShiftSampleOver(-5 * trackManager.Viewport.SecondsPerPixel);
@@ -396,7 +406,7 @@ public partial class FrmMain : Form, IMessageFilter
         if (trackManager.Tracks.Count > 0)
         {
             UpdateTransportButtons();
-            if (chkFollowPlayback.Checked && trackManager.State == NAudio.Wave.PlaybackState.Playing &&
+            if (regionDragTrack is null && chkFollowPlayback.Checked && trackManager.State == NAudio.Wave.PlaybackState.Playing &&
                 trackManager.Viewport.Follow(trackManager.PlaybackTime))
                 RefreshTimelineView();
             UpdatePlayhead();
@@ -425,11 +435,56 @@ public partial class FrmMain : Form, IMessageFilter
 
     private void waveform_MouseDown(object sender, MouseEventArgs e)
     {
-        if (trackManager is null || e.Button != MouseButtons.Right) return;
+        if (trackManager is null) return;
         var source = (Control)sender;
         // Waveform rows and the playhead label are direct children of panTracks.
         int x = e.X + (source == panTracks ? 0 : source.Left);
-        trackManager.Seek(trackManager.Viewport.TimeAt(x));
+        if (e.Button == MouseButtons.Right)
+        {
+            trackManager.Seek(trackManager.Viewport.TimeAt(x));
+            return;
+        }
+        if (e.Button != MouseButtons.Left || e.Clicks > 1) return;
+        int y = e.Y + (source == panTracks ? 0 : source.Top);
+        var track = source.Tag as Track ?? trackManager.Tracks.FirstOrDefault(item => item.PanDrawSamples.Bounds.Contains(x, y));
+        if (track is null) return;
+        EndRegionDrag();
+        trackManager.SelectTrack(track);
+        track.ClearSelection();
+        regionDragTrack = track;
+        regionAnchorX = x;
+        regionAnchorTime = trackManager.Viewport.TimeAt(x);
+        regionDragMoved = false;
+        track.PanDrawSamples.Capture = true;
+    }
+
+    private void waveform_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (regionDragTrack?.PanDrawSamples != sender) return;
+        UpdateRegionDrag(e.X);
+    }
+
+    private void waveform_MouseUp(object sender, MouseEventArgs e)
+    {
+        if (e.Button != MouseButtons.Left || regionDragTrack?.PanDrawSamples != sender) return;
+        UpdateRegionDrag(e.X);
+        EndRegionDrag();
+    }
+
+    private void UpdateRegionDrag(int x)
+    {
+        if (regionDragTrack is null) return;
+        regionDragMoved |= Math.Abs(x - regionAnchorX) >= 3;
+        if (!regionDragMoved) return;
+        x = Math.Clamp(x, 0, regionDragTrack.PanDrawSamples.ClientSize.Width);
+        regionDragTrack.SetSelection(regionAnchorTime, trackManager.Viewport.TimeAt(x));
+    }
+
+    private void EndRegionDrag()
+    {
+        Panel panel = regionDragTrack?.PanDrawSamples;
+        regionDragTrack = null;
+        if (panel != null && !panel.IsDisposed) panel.Capture = false;
     }
 
     // Receive wheel messages even when a toolbar control has keyboard focus.
@@ -464,6 +519,7 @@ public partial class FrmMain : Form, IMessageFilter
             Width = panTracks.Width,
             Left = 0,
             Top = 0,
+            Tag = track,
         };
         pan.MouseClick += (sender, e) =>
         {
@@ -476,9 +532,16 @@ public partial class FrmMain : Form, IMessageFilter
             track.PanDrawSamples.Invalidate();
         };
         pan.MouseDown += waveform_MouseDown;
+        pan.MouseMove += waveform_MouseMove;
+        pan.MouseUp += waveform_MouseUp;
+        pan.MouseCaptureChanged += (sender, e) =>
+        {
+            if (regionDragTrack == track && !pan.Capture) EndRegionDrag();
+        };
         pan.Paint += (sender, e) =>
         {
             track.DrawSamples(e.Graphics, trackManager.Viewport);
+            if (trackManager.SelectedTrack == track) track.DrawSelection(e.Graphics, trackManager.Viewport);
         };
         panTracks.Controls.Add(pan);
         track.LinkPanels(pan, panTracks);

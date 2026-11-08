@@ -101,6 +101,7 @@ public class TrackManager : IDisposable {
   }
 
   public void SelectTrack(Track track) {
+    if (SelectedTrack != track) SelectedTrack?.ClearSelection();
     SelectedTrack = track;
     var profile = FrmMain.ActiveProfile;
     foreach (Track item in Tracks) {
