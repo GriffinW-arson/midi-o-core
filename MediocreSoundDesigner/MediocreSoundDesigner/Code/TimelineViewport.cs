@@ -85,9 +85,9 @@ public sealed class TimelineViewport {
     // move the viewport to follow the playhead
     // returns True on successful movement
     public bool Follow(double seconds) {
-        if (seconds >= Start && seconds < TimeAt(Width * 0.8)) return false;
+        if (seconds >= Start && seconds < TimeAt(Width * 0.5)) return false;
         double previous = Start;
-        SetStart(seconds - VisibleDuration * 0.2);
+        SetStart(seconds - VisibleDuration * 0.5);
         return Start != previous;
     }
 }

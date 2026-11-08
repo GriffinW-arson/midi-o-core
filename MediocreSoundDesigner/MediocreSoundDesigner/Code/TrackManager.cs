@@ -47,7 +47,7 @@ public class TrackManager : IDisposable {
       StartPlayback(position);
     }
     else if (State == PlaybackState.Paused) {
-      // Keep the paused cursor, but never resume audio rendered before this edit.
+      // Keep the paused cursor, but never resume audio rendered before this edit
       playbackDirty = true;
     }
     else ResetPlayback();

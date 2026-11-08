@@ -38,7 +38,7 @@ public class Track : IDisposable {
   // dur = (number of samples * number of channels) / sample rate
   public double Duration => (double)(samples.Length / channels) / sampleRate;
   public int SampleRate => sampleRate;
-  public int Channels => channels;
+  public int Channels => channels; // stereo audio
   public event EventHandler Changed;
   public bool IsDisabled { get; private set; }
   public Panel PanDrawSamples { get; private set; }
@@ -48,7 +48,10 @@ public class Track : IDisposable {
 
   // ctor
   public Track(string file) {
+    // use a file reader
     using var reader = new AudioFileReader(file);
+
+    // load the ENTIRE file
     int sampleCount = checked((int)(reader.Length / sizeof(float)));
     this.samples = new float[sampleCount];
     int samplesRead = 0;
@@ -61,6 +64,7 @@ public class Track : IDisposable {
       Array.Resize(ref samples, samplesRead);
     }
 
+    // configure the track from the file
     this.file = file;
     this.duration = reader.TotalTime;
     this.offset = 0;
@@ -297,6 +301,7 @@ public class Track : IDisposable {
     float height = Math.Max(0, center - 1);
     using Pen pen = new(IsDisabled ? SAMPLES_DRAW_COLOR_DISABLED : SAMPLES_DRAW_COLOR);
 
+    // waveform was 
     if (viewport.SecondsPerPixel * sampleRate < 1) {
       // Preserve individual channel traces when zoomed closer than one frame/pixel.
       int first = (int)Math.Clamp(Math.Floor((viewport.Start - StartTime) * sampleRate) - 1, 0, frames);
