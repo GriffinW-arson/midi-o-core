@@ -47,11 +47,11 @@ internal static class Program {
       using var graphics = Graphics.FromImage(bitmap);
       graphics.Clear(Color.Black);
       track.DrawSamples(graphics, view);
-      Require(HasCyan(bitmap, 450, 0, 500, 15), "The final peak was not drawn in the scrolled view.");
+      Require(HasColor(bitmap, 450, 0, 500, 15, track.WaveformPen.Color), "The final peak was not drawn in the scrolled view.");
       track.Flip();
       graphics.Clear(Color.Black);
       track.DrawSamples(graphics, view);
-      Require(HasCyan(bitmap, 450, 85, 500, 100), "Editing did not invalidate cached peaks.");
+      Require(HasColor(bitmap, 450, 85, 500, 100, track.WaveformPen.Color), "Editing did not invalidate cached peaks.");
       track.ReplaceSamples(new float[1000]);
       Near(track.Duration, 1);
     });
@@ -68,8 +68,8 @@ internal static class Program {
       using var bitmap = new Bitmap(100, 100);
       using var graphics = Graphics.FromImage(bitmap);
       track.DrawSamples(graphics, view);
-      Require(HasCyan(bitmap, 49, 0, 52, 5));
-      Require(HasCyan(bitmap, 49, 95, 52, 100));
+      Require(HasColor(bitmap, 49, 0, 52, 5, track.WaveformPen.Color));
+      Require(HasColor(bitmap, 49, 95, 52, 100, track.WaveformPen.Color));
     });
 
     Check("cached peaks match direct scans for arbitrary stereo ranges", () => {
@@ -210,6 +210,49 @@ internal static class Program {
       Near(players[^1].ReadSample(), -0.375);
     });
 
+    Check("reset and end stop playback, seek the viewport, and allow replay", () => {
+      using var panel = new Panel { Width = 1000 };
+      var players = new List<TestWavePlayer>();
+      using var manager = new TrackManager(panel, () => {
+        var player = new TestWavePlayer();
+        players.Add(player);
+        return player;
+      });
+      manager.AddTrack(new Track(Enumerable.Repeat(0.25f, 88200).ToArray()));
+      var muted = new Track(new float[132300]);
+      muted.ToggleDisabled();
+      manager.AddTrack(muted);
+      manager.Viewport.SetZoom(0.7);
+      manager.PlayAll();
+      players[^1].Advance(0.5);
+      var active = players[^1];
+      manager.GoToEnd();
+      Require(active.IsDisposed && manager.State == PlaybackState.Stopped);
+      Near(manager.PlaybackTime, 3); // Muted tracks still contribute to project length.
+      Near(manager.Viewport.TimeAt(manager.Viewport.Width), 3);
+      manager.PlayAll();
+      Near(manager.PlaybackTime, 0);
+      Near(manager.Viewport.Start, 0);
+      Near(players[^1].ReadSample(), 0.25);
+      players[^1].Advance(0.25);
+      manager.PauseAll();
+      var paused = players[^1];
+      manager.ResetToStart();
+      Require(paused.IsDisposed && manager.State == PlaybackState.Stopped);
+      Near(manager.PlaybackTime, 0);
+      Near(manager.Viewport.Start, 0);
+      manager.PlayAll();
+      Near(players[^1].ReadSample(), 0.25);
+      foreach (var track in manager.Tracks.ToArray()) {
+        manager.RemTrack(track);
+        track.Dispose();
+      }
+      manager.GoToEnd();
+      manager.ResetToStart();
+      Near(manager.PlaybackTime, 0);
+      Require(manager.State == PlaybackState.Stopped);
+    });
+
     Check("form layout and viewport integration", () => {
       using var form = new FrmMain();
       var field = typeof(FrmMain).GetField("trackManager", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -239,6 +282,21 @@ internal static class Program {
       Near(manager.Viewport.Start, manager.Viewport.MaximumStart);
       Require(manager.Viewport.Start > 0);
       Require(scroll.Value == lastScrollPosition && scroll.Enabled);
+      var reset = (Button)typeof(FrmMain).GetField("btnReset", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(form);
+      var end = (Button)typeof(FrmMain).GetField("btnEnd", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(form);
+      var playhead = (Label)typeof(FrmMain).GetField("lblPlayhead", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(form);
+      Image normalEnd = end.BackgroundImage;
+      typeof(FrmMain).GetMethod("btnEnd_Click", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, new object[] { end, EventArgs.Empty });
+      Near(manager.PlaybackTime, 180);
+      Require(playhead.Left + playhead.Width <= track.PanDrawSamples.ClientSize.Width);
+      Require(!ReferenceEquals(end.BackgroundImage, normalEnd), "End should show its white click icon.");
+      typeof(FrmMain).GetMethod("transportFeedback_Tick", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, new object[] { form, EventArgs.Empty });
+      Require(ReferenceEquals(end.BackgroundImage, normalEnd), "End should return to its red icon.");
+      typeof(FrmMain).GetMethod("btnReset_Click", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, new object[] { reset, EventArgs.Empty });
+      Near(manager.PlaybackTime, 0);
+      Near(playhead.Left, 0);
+      Require(reset.Top >= track.PanDrawSamples.Parent.Bottom);
+      typeof(FrmMain).GetMethod("transportFeedback_Tick", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, new object[] { form, EventArgs.Empty });
       using var preview = new Bitmap(form.ClientSize.Width, form.ClientSize.Height);
       using (var graphics = Graphics.FromImage(preview)) graphics.Clear(Color.Black);
       RenderControls(form, preview, Point.Empty);
@@ -305,10 +363,10 @@ internal static class Program {
     }
   }
 
-  private static bool HasCyan(Bitmap image, int left, int top, int right, int bottom) {
+  private static bool HasColor(Bitmap image, int left, int top, int right, int bottom, Color color) {
     for (int x = left; x < right; x++)
       for (int y = top; y < bottom; y++)
-        if (image.GetPixel(x, y).ToArgb() == Color.Cyan.ToArgb()) return true;
+        if (image.GetPixel(x, y).ToArgb() == color.ToArgb()) return true;
     return false;
   }
 

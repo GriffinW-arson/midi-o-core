@@ -5,7 +5,7 @@ namespace MediocreSoundDesigner;
 public partial class FrmMain : Form
 {
     // Color Profile Definitions
-    public record ColorProfile(Color MainPanelColor, Color DefaultWaveformColor, List<Color> AccentWaveformPalette);
+    public record ColorProfile(Color MainPanelColor, Color DefaultWaveformColor, List<Color> AccentWaveformPalette, Color SelectedPanelColor);
 
     public static readonly Dictionary<string, ColorProfile> ColorProfiles = new()
     {
@@ -13,42 +13,48 @@ public partial class FrmMain : Form
             "Default", new ColorProfile(
                 Color.DimGray,
                 Color.Cyan,
-                new List<Color> { Color.Cyan, Color.DodgerBlue, Color.LimeGreen, Color.Crimson, Color.MediumOrchid, Color.DeepSkyBlue, Color.Orange, Color.Teal, Color.Gold, Color.HotPink, Color.Coral }
+                new List<Color> { Color.Cyan, Color.DodgerBlue, Color.LimeGreen, Color.Crimson, Color.MediumOrchid, Color.DeepSkyBlue, Color.Orange, Color.Teal, Color.Gold, Color.HotPink, Color.Coral },
+                Color.Gray
             )
         },
         {
             "Red", new ColorProfile(
                 Color.FromArgb(45, 10, 10),
                 Color.Crimson,
-                new List<Color> { Color.Crimson, Color.Coral, Color.OrangeRed, Color.HotPink, Color.IndianRed, Color.LightCoral, Color.DarkOrange }
+                new List<Color> { Color.Crimson, Color.Coral, Color.OrangeRed, Color.HotPink, Color.IndianRed, Color.LightCoral, Color.DarkOrange },
+                Color.FromArgb(75, 25, 25)
             )
         },
         {
             "Green", new ColorProfile(
                 Color.FromArgb(10, 35, 10),
                 Color.LimeGreen,
-                new List<Color> { Color.LimeGreen, Color.Teal, Color.SpringGreen, Color.MediumSpringGreen, Color.Chartreuse, Color.LightSeaGreen, Color.DarkSeaGreen }
+                new List<Color> { Color.LimeGreen, Color.Teal, Color.SpringGreen, Color.MediumSpringGreen, Color.Chartreuse, Color.LightSeaGreen, Color.DarkSeaGreen },
+                Color.FromArgb(25, 65, 25)
             )
         },
         {
             "Blue", new ColorProfile(
                 Color.FromArgb(10, 15, 45),
                 Color.DodgerBlue,
-                new List<Color> { Color.DodgerBlue, Color.Cyan, Color.DeepSkyBlue, Color.RoyalBlue, Color.SteelBlue, Color.SkyBlue, Color.MediumSlateBlue }
+                new List<Color> { Color.DodgerBlue, Color.Cyan, Color.DeepSkyBlue, Color.RoyalBlue, Color.SteelBlue, Color.SkyBlue, Color.MediumSlateBlue },
+                Color.FromArgb(25, 35, 80)
             )
         },
         {
             "Black", new ColorProfile(
                 Color.FromArgb(20, 20, 20),
                 Color.White,
-                new List<Color> { Color.White, Color.LightGray, Color.Silver, Color.Aqua, Color.SpringGreen, Color.Magenta, Color.Yellow }
+                new List<Color> { Color.White, Color.LightGray, Color.Silver, Color.Aqua, Color.SpringGreen, Color.Magenta, Color.Yellow },
+                Color.FromArgb(48, 48, 48)
             )
         },
         {
             "White", new ColorProfile(
                 Color.FromArgb(240, 240, 240),
                 Color.MidnightBlue,
-                new List<Color> { Color.MidnightBlue, Color.DarkRed, Color.DarkGreen, Color.Purple, Color.DarkSlateBlue, Color.SaddleBrown, Color.DarkMagenta }
+                new List<Color> { Color.MidnightBlue, Color.DarkRed, Color.DarkGreen, Color.Purple, Color.DarkSlateBlue, Color.SaddleBrown, Color.DarkMagenta },
+                Color.FromArgb(210, 225, 245)
             )
         }
     };
@@ -59,6 +65,15 @@ public partial class FrmMain : Form
     // fields
     private TrackManager trackManager;
     private const int ScrollSteps = 1_000_000;
+    private Button pressedTransportButton;
+    private static readonly Image ResetIcon = Resources.transportReset;
+    private static readonly Image ResetPressedIcon = Resources.transportReset2;
+    private static readonly Image PlayIcon = Resources.transportPlay;
+    private static readonly Image PlayPressedIcon = Resources.transportPlay2;
+    private static readonly Image PauseIcon = Resources.transportPause;
+    private static readonly Image PausePressedIcon = Resources.transportPause2;
+    private static readonly Image EndIcon = Resources.transportEnd;
+    private static readonly Image EndPressedIcon = Resources.transportEnd2;
 
     // ctor
     public FrmMain()
@@ -74,7 +89,6 @@ public partial class FrmMain : Form
         trackManager = new(panTracks);
         trackManager.TimelineChanged += (sender, e) => RefreshTimelineView();
         FormClosed += (sender, e) => trackManager.Dispose();
-        btnPlay.BackgroundImage = Resources.play;
         followPlayheadToolStripMenuItem.Checked = chkFollowPlayback.Checked;
         //BuildThemeMenu();
         UpdateSizes();
@@ -125,7 +139,8 @@ public partial class FrmMain : Form
                 track.ApplyTheme(profile);
                 if (track.PanDrawSamples != null)
                 {
-                    track.PanDrawSamples.BackColor = profile.MainPanelColor;
+                    track.PanDrawSamples.BackColor = track == trackManager.SelectedTrack
+                        ? profile.SelectedPanelColor : profile.MainPanelColor;
                     track.PanDrawSamples.Invalidate();
                 }
             }
@@ -144,7 +159,7 @@ public partial class FrmMain : Form
         RefreshTimelineView();
     }
 
-    private void btnFitSong_Click(object sender, EventArgs e)
+    private void fitZoom_Click(object sender, EventArgs e)
     {
         if (trackManager is null) return;
         trackManager.Viewport.Fit();
@@ -202,13 +217,57 @@ public partial class FrmMain : Form
         if (trackManager.State is NAudio.Wave.PlaybackState.Stopped or NAudio.Wave.PlaybackState.Paused)
         {
             trackManager.PlayAll();
-            btnPlay.BackgroundImage = Resources.pause;
         }
         else
         {
             trackManager.PauseAll();
-            btnPlay.BackgroundImage = Resources.play;
         }
+        FlashTransportButton(btnPlay);
+        UpdatePlayhead();
+    }
+
+    private void btnReset_Click(object sender, EventArgs e)
+    {
+        trackManager.ResetToStart();
+        FlashTransportButton(btnReset);
+    }
+
+    private void btnEnd_Click(object sender, EventArgs e)
+    {
+        trackManager.GoToEnd();
+        FlashTransportButton(btnEnd);
+    }
+
+    private void transportButton_MouseDown(object sender, MouseEventArgs e)
+    {
+        if (e.Button == MouseButtons.Left) FlashTransportButton((Button)sender);
+    }
+
+    private void FlashTransportButton(Button button)
+    {
+        pressedTransportButton = button;
+        transportFeedback.Stop();
+        transportFeedback.Start();
+        UpdateTransportButtons();
+    }
+
+    private void transportFeedback_Tick(object sender, EventArgs e)
+    {
+        transportFeedback.Stop();
+        pressedTransportButton = null;
+        UpdateTransportButtons();
+    }
+
+    private void UpdateTransportButtons()
+    {
+        bool hasAudio = trackManager.Tracks.Count > 0 && trackManager.Viewport.Duration > 0;
+        btnReset.Enabled = btnPlay.Enabled = btnEnd.Enabled = hasAudio;
+        btnReset.BackgroundImage = pressedTransportButton == btnReset ? ResetPressedIcon : ResetIcon;
+        btnEnd.BackgroundImage = pressedTransportButton == btnEnd ? EndPressedIcon : EndIcon;
+        bool playing = trackManager.State == NAudio.Wave.PlaybackState.Playing;
+        btnPlay.BackgroundImage = playing ? (pressedTransportButton == btnPlay ? PausePressedIcon : PauseIcon) :
+            pressedTransportButton == btnPlay ? PlayPressedIcon : PlayIcon;
+        btnPlay.AccessibleName = playing ? "Pause" : "Play";
     }
 
     private void menuFileOpen_Click(object sender, EventArgs e)
@@ -336,8 +395,7 @@ public partial class FrmMain : Form
         if (trackManager is null) return;
         if (trackManager.Tracks.Count > 0)
         {
-            btnPlay.BackgroundImage = trackManager.State == NAudio.Wave.PlaybackState.Playing ? Resources.pause : Resources.play;
-            btnPlay.Visible = true;
+            UpdateTransportButtons();
             if (chkFollowPlayback.Checked && trackManager.State == NAudio.Wave.PlaybackState.Playing &&
                 trackManager.Viewport.Follow(trackManager.PlaybackTime))
                 RefreshTimelineView();
@@ -345,8 +403,7 @@ public partial class FrmMain : Form
         }
         else
         {
-            btnPlay.BackgroundImage = null;
-            btnPlay.Visible = false;
+            UpdateTransportButtons();
             lblPlayhead.Visible = false;
         }
     }
@@ -436,7 +493,6 @@ public partial class FrmMain : Form
         timelineScroll.Value = viewport.MaximumStart <= 0 ? 0 :
             Math.Clamp((int)Math.Round(range * viewport.Start / viewport.MaximumStart), 0, range);
         timelineScroll.Enabled = viewport.MaximumStart > 0;
-        btnFitSong.Enabled = viewport.Duration > 0;
         zoomToolStripMenuItem.Enabled = viewport.Duration > 0;
         // Allow for rounding the continuous zoom scale to the slider's integer steps.
         double tolerance = 0.5 / (trkDrawTimescale.Maximum - trkDrawTimescale.Minimum) + 1e-9;
@@ -447,14 +503,19 @@ public partial class FrmMain : Form
         toolStripMenuItem5.Checked = Math.Abs(viewport.ZoomFraction - 0.01) <= tolerance;
         lblDebug.Text = $"{viewport.Start:0.00}s – {viewport.TimeAt(viewport.Width):0.00}s  /  {viewport.Duration:0.00}s";
         trackManager.RedrawAll();
+        UpdateTransportButtons();
         UpdatePlayhead();
     }
 
     private void UpdatePlayhead()
     {
+        lblPlayheadTime.Text = TimeSpan.FromSeconds(trackManager.PlaybackTime).ToString(@"hh\:mm\:ss\.fff");
         double x = trackManager.Viewport.XAt(trackManager.PlaybackTime);
-        lblPlayhead.Visible = trackManager.Tracks.Count > 0 && x >= 0 && x < panTracks.ClientSize.Width;
-        if (lblPlayhead.Visible) lblPlayhead.Left = (int)x;
+        if (trackManager.Viewport.Duration > 0 && trackManager.PlaybackTime >= trackManager.Viewport.Duration)
+            x = Math.Min(x, panTracks.ClientSize.Width - lblPlayhead.Width);
+        bool inView = trackManager.Tracks.Count > 0 && x >= 0 && x < panTracks.ClientSize.Width;
+        lblPlayhead.Visible = inView;
+        if (inView) lblPlayhead.Left = (int)x;
     }
 
     private sealed class WaveformPanel : Panel

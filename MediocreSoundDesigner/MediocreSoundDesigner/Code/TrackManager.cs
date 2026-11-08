@@ -8,12 +8,13 @@ public class TrackManager : IDisposable {
   private readonly Panel panContainer;
   private readonly Func<IWavePlayer> createOutput;
   private bool playbackDirty;
+  private double cursorTime;
   public List<Track> Tracks { get; } = new();
   public Track SelectedTrack { get; private set; }
   public TimelineViewport Viewport { get; } = new();
   public event EventHandler TimelineChanged;
   public PlaybackState State => pseudoCombinedTrack?.State ?? PlaybackState.Stopped;
-  public double PlaybackTime => pseudoCombinedTrack?.GetPlaybackTime() ?? 0;
+  public double PlaybackTime => Math.Clamp(pseudoCombinedTrack?.GetPlaybackTime() ?? cursorTime, 0, Viewport.Duration);
 
   public TrackManager(Panel panContainer, Func<IWavePlayer> createOutput = null) {
     this.panContainer = panContainer;
@@ -58,6 +59,20 @@ public class TrackManager : IDisposable {
     pseudoCombinedTrack?.Dispose();
     pseudoCombinedTrack = null;
     playbackDirty = false;
+    cursorTime = 0;
+  }
+
+  public void ResetToStart() {
+    ResetPlayback();
+    Viewport.SetStart(0);
+    TimelineChanged?.Invoke(this, EventArgs.Empty);
+  }
+
+  public void GoToEnd() {
+    ResetPlayback();
+    cursorTime = Viewport.Duration;
+    Viewport.SetStart(Viewport.MaximumStart);
+    TimelineChanged?.Invoke(this, EventArgs.Empty);
   }
 
   public void RefreshTimeline() {
@@ -70,11 +85,12 @@ public class TrackManager : IDisposable {
 
   public void SelectTrack(Track track) {
     SelectedTrack = track;
+    var profile = FrmMain.ActiveProfile;
     foreach (Track item in Tracks) {
       item.PanDrawSamples.BorderStyle = BorderStyle.None;
-      item.PanDrawSamples.BackColor = item == track ? Color.Gray : Color.DimGray;
+      item.PanDrawSamples.BackColor = item == track ? profile.SelectedPanelColor : profile.MainPanelColor;
     }
-    track.PanDrawSamples.BackColor = Color.Gray;
+    track.PanDrawSamples.BackColor = profile.SelectedPanelColor;
   }
 
   public void RedrawAll() {
@@ -92,9 +108,14 @@ public class TrackManager : IDisposable {
       pseudoCombinedTrack.Play();
       return;
     }
-    double position = State == PlaybackState.Paused ? PlaybackTime : 0;
+    double position = State == PlaybackState.Paused ? PlaybackTime : cursorTime;
+    if (position >= Viewport.Duration) {
+      position = 0;
+      Viewport.SetStart(0);
+    }
     ResetPlayback();
     StartPlayback(position);
+    TimelineChanged?.Invoke(this, EventArgs.Empty);
   }
 
   private void StartPlayback(double position) {
