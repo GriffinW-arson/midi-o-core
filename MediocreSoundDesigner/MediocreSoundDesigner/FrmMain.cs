@@ -2,7 +2,7 @@ using MediocreSoundDesigner.Properties;
 
 namespace MediocreSoundDesigner;
 
-public partial class FrmMain : Form
+public partial class FrmMain : Form, IMessageFilter
 {
     // Color Profile Definitions
     public record ColorProfile(Color MainPanelColor, Color DefaultWaveformColor, List<Color> AccentWaveformPalette, Color SelectedPanelColor);
@@ -88,7 +88,7 @@ public partial class FrmMain : Form
         DoubleBuffered = true;
         trackManager = new(panTracks);
         trackManager.TimelineChanged += (sender, e) => RefreshTimelineView();
-        FormClosed += (sender, e) => trackManager.Dispose();
+        Application.AddMessageFilter(this);
         followPlayheadToolStripMenuItem.Checked = chkFollowPlayback.Checked;
         //BuildThemeMenu();
         UpdateSizes();
@@ -423,6 +423,33 @@ public partial class FrmMain : Form
         RefreshTimelineView();
     }
 
+    private void waveform_MouseDown(object sender, MouseEventArgs e)
+    {
+        if (trackManager is null || e.Button != MouseButtons.Right) return;
+        var source = (Control)sender;
+        // Waveform rows and the playhead label are direct children of panTracks.
+        int x = e.X + (source == panTracks ? 0 : source.Left);
+        trackManager.Seek(trackManager.Viewport.TimeAt(x));
+    }
+
+    // Receive wheel messages even when a toolbar control has keyboard focus.
+    public bool PreFilterMessage(ref Message message)
+    {
+        const int MouseWheelMessage = 0x020A;
+        if (message.Msg != MouseWheelMessage || trackManager is null || trackManager.Viewport.Duration <= 0)
+            return false;
+        if (Control.FromChildHandle(message.HWnd)?.FindForm() != this) return false;
+        long coordinates = message.LParam.ToInt64();
+        Point screenPoint = new(unchecked((short)coordinates), unchecked((short)(coordinates >> 16)));
+        Point point = panTracks.PointToClient(screenPoint);
+        if (!panTracks.ClientRectangle.Contains(point)) return false;
+        int delta = unchecked((short)(message.WParam.ToInt64() >> 16));
+        var viewport = trackManager.Viewport;
+        viewport.SetZoom(viewport.ZoomFraction - delta / 120.0 * 0.04, point.X);
+        RefreshTimelineView();
+        return true;
+    }
+
     private void zoomHalf_Click(object sender, EventArgs e) => SetZoomLevel(0.5);
     private void zoomQuarter_Click(object sender, EventArgs e) => SetZoomLevel(0.25);
     private void zoomTenth_Click(object sender, EventArgs e) => SetZoomLevel(0.1);
@@ -438,15 +465,17 @@ public partial class FrmMain : Form
             Left = 0,
             Top = 0,
         };
-        pan.Click += (sender, e) =>
+        pan.MouseClick += (sender, e) =>
         {
-            trackManager.SelectTrack(track);
+            if (e.Button == MouseButtons.Left) trackManager.SelectTrack(track);
         };
-        pan.DoubleClick += (sender, e) =>
+        pan.MouseDoubleClick += (sender, e) =>
         {
+            if (e.Button != MouseButtons.Left) return;
             track.ToggleDisabled();
             track.PanDrawSamples.Invalidate();
         };
+        pan.MouseDown += waveform_MouseDown;
         pan.Paint += (sender, e) =>
         {
             track.DrawSamples(e.Graphics, trackManager.Viewport);

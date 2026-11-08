@@ -15,6 +15,8 @@
         {
             if (disposing && (components != null))
             {
+                Application.RemoveMessageFilter(this);
+                trackManager?.Dispose();
                 components.Dispose();
             }
             base.Dispose(disposing);
@@ -91,6 +93,7 @@
 			panTracks.TabIndex = 0;
 			panTracks.SizeChanged += panTracks_SizeChanged;
 			panTracks.Paint += panTracks_Paint;
+			panTracks.MouseDown += waveform_MouseDown;
 			// 
 			// lblPlayhead
 			// 
@@ -99,6 +102,7 @@
 			lblPlayhead.Name = "lblPlayhead";
 			lblPlayhead.Size = new Size(5, 385);
 			lblPlayhead.TabIndex = 9;
+			lblPlayhead.MouseDown += waveform_MouseDown;
 			// 
 			// lblDebug
 			// 

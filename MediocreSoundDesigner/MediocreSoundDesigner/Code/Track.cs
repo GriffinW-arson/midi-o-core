@@ -292,12 +292,7 @@ public class Track : IDisposable
         {
             SaveToTempFile();
             fileReader = new AudioFileReader(tempFilePath);
-            long startFrame = (long)Math.Round(Math.Clamp(startTime, 0, Duration) * sampleRate);
-            fileReader.Position = startFrame * fileReader.WaveFormat.BlockAlign;
-            playbackStartTime = (double)fileReader.Position / fileReader.WaveFormat.AverageBytesPerSecond;
-            outputDevice = createOutput?.Invoke() ?? new WaveOut();
-            outputDevice.Init(fileReader);
-            outputDevice.Play();
+            SeekPlayback(startTime, createOutput);
         }
         catch
         {
@@ -308,6 +303,25 @@ public class Track : IDisposable
     public void Pause()
     {
         outputDevice?.Pause();
+    }
+
+    internal void SeekPlayback(double seconds, Func<IWavePlayer> createOutput)
+    {
+        ReleaseOutput();
+        try
+        {
+            long frame = (long)Math.Round(Math.Clamp(seconds, 0, Duration) * sampleRate);
+            fileReader.Position = frame * fileReader.WaveFormat.BlockAlign;
+            playbackStartTime = (double)fileReader.Position / fileReader.WaveFormat.AverageBytesPerSecond;
+            outputDevice = createOutput?.Invoke() ?? new WaveOut();
+            outputDevice.Init(fileReader);
+            outputDevice.Play();
+        }
+        catch
+        {
+            ReleasePlayback();
+            throw;
+        }
     }
     public void Reset()
     {
@@ -446,11 +460,16 @@ public class Track : IDisposable
     }
 
     // dispose
-    private void ReleasePlayback()
+    private void ReleaseOutput()
     {
         outputDevice?.Stop();
         outputDevice?.Dispose();
         outputDevice = null;
+    }
+
+    private void ReleasePlayback()
+    {
+        ReleaseOutput();
         fileReader?.Dispose();
         fileReader = null;
         playbackStartTime = 0;

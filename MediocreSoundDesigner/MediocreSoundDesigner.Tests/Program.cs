@@ -253,6 +253,66 @@ internal static class Program {
       Require(manager.State == PlaybackState.Stopped);
     });
 
+    Check("seeking preserves playing, paused, and stopped states and selects the right audio", () => {
+      using var panel = new Panel { Width = 1000 };
+      var players = new List<TestWavePlayer>();
+      using var manager = new TrackManager(panel, () => {
+        var player = new TestWavePlayer();
+        players.Add(player);
+        return player;
+      });
+      var samples = Enumerable.Repeat(0.25f, 44100)
+        .Concat(Enumerable.Repeat(-0.5f, 44100))
+        .Concat(Enumerable.Repeat(0.75f, 44100)).ToArray();
+      var track = new Track(samples);
+      manager.AddTrack(track);
+      manager.Seek(1.5);
+      Require(manager.State == PlaybackState.Stopped && players.Count == 0);
+      Near(manager.PlaybackTime, 1.5);
+      manager.PlayAll();
+      Near(players[^1].ReadSample(), -0.5);
+      var previous = players[^1];
+      manager.Seek(0.25);
+      Require(manager.State == PlaybackState.Playing && previous.IsDisposed);
+      Near(manager.PlaybackTime, 0.25);
+      Near(players[^1].ReadSample(), 0.25);
+      manager.PauseAll();
+      int outputs = players.Count;
+      manager.Seek(2.25);
+      Require(manager.State == PlaybackState.Paused && players.Count == outputs,
+        "Paused seeking must not start an output device.");
+      Near(manager.PlaybackTime, 2.25);
+      track.ToggleDisabled();
+      manager.PlayAll();
+      Near(manager.PlaybackTime, 2.25);
+      Near(players[^1].ReadSample(), 0);
+      track.ToggleDisabled();
+      Near(players[^1].ReadSample(), 0.75);
+      manager.Seek(-1);
+      Near(manager.PlaybackTime, 0);
+      Require(manager.State == PlaybackState.Playing);
+      manager.Seek(100);
+      Near(manager.PlaybackTime, 3);
+      Require(manager.State == PlaybackState.Stopped); // Reaching EOF ends playback naturally.
+      manager.PlayAll();
+      Near(players[^1].ReadSample(), 0.25);
+    });
+
+    Check("pointer zoom preserves its anchor and clamps at zoom limits", () => {
+      var view = new TimelineViewport();
+      view.Configure(3600, 1000);
+      double anchorTime = view.TimeAt(173);
+      view.SetZoom(0.85, 173);
+      Near(view.TimeAt(173), anchorTime);
+      view.SetZoom(0.8, 173);
+      Near(view.TimeAt(173), anchorTime);
+      view.SetZoom(-100, 173);
+      Near(view.ZoomFraction, 0);
+      view.SetZoom(100, 173);
+      Require(view.IsFit);
+      Near(view.Start, 0);
+    });
+
     Check("form layout and viewport integration", () => {
       using var form = new FrmMain();
       var field = typeof(FrmMain).GetField("trackManager", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -282,6 +342,27 @@ internal static class Program {
       Near(manager.Viewport.Start, manager.Viewport.MaximumStart);
       Require(manager.Viewport.Start > 0);
       Require(scroll.Value == lastScrollPosition && scroll.Enabled);
+      var rightClick = new MouseEventArgs(MouseButtons.Right, 1, 200, 50, 0);
+      double seekTime = manager.Viewport.TimeAt(200);
+      typeof(Control).GetMethod("OnMouseDown", BindingFlags.Instance | BindingFlags.NonPublic)
+        .Invoke(longTrack.PanDrawSamples, new object[] { rightClick });
+      Near(manager.PlaybackTime, seekTime);
+      Require(manager.State == PlaybackState.Stopped && !longTrack.IsDisabled);
+      _ = form.Handle;
+      _ = longTrack.PanDrawSamples.Parent.Handle;
+      _ = longTrack.PanDrawSamples.Handle;
+      Point screen = longTrack.PanDrawSamples.PointToScreen(new Point(200, 50));
+      long packedPoint = ((long)(ushort)screen.Y << 16) | (ushort)screen.X;
+      var wheel = Message.Create(longTrack.PanDrawSamples.Handle, 0x020A, (IntPtr)(120 << 16), (IntPtr)packedPoint);
+      double beforeZoom = manager.Viewport.ZoomFraction;
+      double anchorTime = manager.Viewport.TimeAt(200);
+      Require(form.PreFilterMessage(ref wheel));
+      Require(manager.Viewport.ZoomFraction < beforeZoom);
+      Near(manager.Viewport.TimeAt(200), anchorTime);
+      Near(manager.PlaybackTime, seekTime);
+      // The wheel path must synchronize the slider using the regular refresh method.
+      var slider = (TrackBar)typeof(FrmMain).GetField("trkDrawTimescale", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(form);
+      Near(slider.Value, slider.Minimum + Math.Round(manager.Viewport.ZoomFraction * (slider.Maximum - slider.Minimum)));
       var reset = (Button)typeof(FrmMain).GetField("btnReset", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(form);
       var end = (Button)typeof(FrmMain).GetField("btnEnd", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(form);
       var playhead = (Label)typeof(FrmMain).GetField("lblPlayhead", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(form);

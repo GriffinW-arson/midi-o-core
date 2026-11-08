@@ -9,11 +9,12 @@ public class TrackManager : IDisposable {
   private readonly Func<IWavePlayer> createOutput;
   private bool playbackDirty;
   private double cursorTime;
+  private bool pausedAtCursor;
   public List<Track> Tracks { get; } = new();
   public Track SelectedTrack { get; private set; }
   public TimelineViewport Viewport { get; } = new();
   public event EventHandler TimelineChanged;
-  public PlaybackState State => pseudoCombinedTrack?.State ?? PlaybackState.Stopped;
+  public PlaybackState State => pausedAtCursor ? PlaybackState.Paused : pseudoCombinedTrack?.State ?? PlaybackState.Stopped;
   public double PlaybackTime => Math.Clamp(pseudoCombinedTrack?.GetPlaybackTime() ?? cursorTime, 0, Viewport.Duration);
 
   public TrackManager(Panel panContainer, Func<IWavePlayer> createOutput = null) {
@@ -60,6 +61,22 @@ public class TrackManager : IDisposable {
     pseudoCombinedTrack = null;
     playbackDirty = false;
     cursorTime = 0;
+    pausedAtCursor = false;
+  }
+
+  public void Seek(double seconds) {
+    double position = Math.Clamp(seconds, 0, Viewport.Duration);
+    PlaybackState previousState = State;
+    if (previousState == PlaybackState.Playing && position < Viewport.Duration) {
+      // Reuse the rendered mix instead of rebuilding the entire song for each seek.
+      pseudoCombinedTrack.SeekPlayback(position, createOutput);
+    }
+    else {
+      ResetPlayback();
+      cursorTime = position;
+      pausedAtCursor = previousState == PlaybackState.Paused;
+    }
+    TimelineChanged?.Invoke(this, EventArgs.Empty);
   }
 
   public void ResetToStart() {
@@ -104,7 +121,7 @@ public class TrackManager : IDisposable {
   }
 
   public void PlayAll() {
-    if (State == PlaybackState.Paused && !playbackDirty) {
+    if (State == PlaybackState.Paused && pseudoCombinedTrack != null && !playbackDirty) {
       pseudoCombinedTrack.Play();
       return;
     }

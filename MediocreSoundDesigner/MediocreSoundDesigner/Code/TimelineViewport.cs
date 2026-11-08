@@ -48,8 +48,9 @@ public sealed class TimelineViewport {
     }
 
     // takes a zoom fraction between 0 and 1
-    public void SetZoom(double fraction) {
-        double center = TimeAt(Width / 2.0);
+    public void SetZoom(double fraction, double? anchorX = null) {
+        double anchor = Math.Clamp(anchorX ?? Width / 2.0, 0, Width);
+        double anchorTime = TimeAt(anchor);
         fraction = Math.Clamp(fraction, 0, 1);
         // at max zoomout, just turn on isfit
         IsFit = fraction >= 1;
@@ -57,7 +58,7 @@ public sealed class TimelineViewport {
         // secs per pix = min zoom * (max zoom/minzoom)^fraction
         // dynamic maximum and logaritmic zoom!! zoom gets slower the more you zoom in
         SecondsPerPixel = MinimumScale * Math.Pow(FitScale / MinimumScale, fraction);
-        SetStart(center - VisibleDuration / 2);
+        SetStart(anchorTime - anchor * SecondsPerPixel);
     }
 
     // for the slider

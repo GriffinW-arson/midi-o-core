@@ -16,6 +16,11 @@ icons with brief white click feedback; the red pause icon indicates active playb
 The current playhead time appears below the transport buttons as hours, minutes,
 seconds, and milliseconds.
 
+Right-click a waveform to seek while preserving the playing, paused, or stopped
+state. Reaching the project's end stops playback. Scroll the mouse wheel over
+the waveform to zoom in or out around the pointer; the slider and View menu stay
+in sync.
+
 Build and run the timeline regression checks (requires the .NET SDK and Windows):
 
 ```powershell
