@@ -64,6 +64,7 @@ public partial class FrmMain : Form, IMessageFilter
 
 	// fields
 	private TrackManager trackManager;
+	private (float[] Samples, int SampleRate, int Channels)? audioClipboard;
 	private readonly int maxTrackHeight;
 	private const int ScrollSteps = 1_000_000;
 	private Button pressedTransportButton;
@@ -331,6 +332,46 @@ public partial class FrmMain : Form, IMessageFilter
 	private void menuEditFlip_Click(object sender, EventArgs e)
 	{
 		trackManager.SelectedTrack?.Flip();
+	}
+
+	private void menuEditClipboard_Click(object sender, EventArgs e)
+	{
+		if (sender == menuEditPasteNewTrack)
+		{
+			if (audioClipboard is not { } clip) return;
+
+			EndRegionDrag();
+			var newTrack = new Track((float[])clip.Samples.Clone(), clip.SampleRate, clip.Channels);
+			CreateTrackPanel(newTrack);
+			trackManager.AddTrack(newTrack);
+			UpdateSizes();
+			return;
+		}
+
+		if (trackManager.SelectedTrack is not Track track) return;
+
+		if (sender == menuEditPaste)
+		{
+			if (audioClipboard is not { } clip) return;
+			if (clip.SampleRate != track.SampleRate || clip.Channels != track.Channels)
+			{
+				MessageBox.Show(this, "Paste requires matching sample rates and channel counts.");
+				return;
+			}
+
+			EndRegionDrag();
+			track.PasteSamples(trackManager.PlaybackTime, clip.Samples);
+			return;
+		}
+
+		if (!track.HasSelection) return;
+
+		audioClipboard = (track.CopySelection(), track.SampleRate, track.Channels);
+		if (sender == menuEditCut)
+		{
+			EndRegionDrag();
+			track.DeleteSelection();
+		}
 	}
 
 	private void menuEditDelete_Click(object sender, EventArgs e)

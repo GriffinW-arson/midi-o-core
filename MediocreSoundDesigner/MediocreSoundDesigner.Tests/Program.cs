@@ -417,6 +417,76 @@ internal static class Program {
       Require(manager.Tracks.Contains(track), "Deleting all selected audio should retain the track itself.");
     });
 
+    Check("clipboard menu copies, cuts, and inserts complete frames", () => {
+      using var form = new FrmMain();
+      var field = typeof(FrmMain).GetField("trackManager", BindingFlags.Instance | BindingFlags.NonPublic);
+      using var manager = (TrackManager)field.GetValue(form);
+      var createPanel = typeof(FrmMain).GetMethod("CreateTrackPanel", BindingFlags.Instance | BindingFlags.NonPublic);
+      var source = new Track(new float[] { 1, 10, 2, 20, 3, 30 }, 10, 2);
+      var destination = new Track(new float[] { 4, 40, 5, 50, 6, 60 }, 10, 2);
+      foreach (Track track in new[] { source, destination }) {
+        createPanel.Invoke(form, new object[] { track });
+        manager.AddTrack(track);
+      }
+      destination.ShiftSampleOver(0.4);
+
+      var editMenu = (ToolStripMenuItem)form.MainMenuStrip.Items["menuEdit"];
+      var cut = (ToolStripMenuItem)editMenu.DropDownItems[0];
+      var copy = (ToolStripMenuItem)editMenu.DropDownItems[1];
+      var paste = (ToolStripMenuItem)editMenu.DropDownItems[2];
+      var pasteNewTrack = (ToolStripMenuItem)editMenu.DropDownItems[3];
+      Require(cut.Text == "Cut" && cut.ShortcutKeys == (Keys.Control | Keys.X));
+      Require(copy.Text == "Copy" && copy.ShortcutKeys == (Keys.Control | Keys.C));
+      Require(paste.Text == "Paste" && paste.ShortcutKeys == (Keys.Control | Keys.V));
+      Require(pasteNewTrack.Text == "Paste to New Track" && editMenu.DropDownItems[4].Text == "Delete");
+
+      pasteNewTrack.PerformClick();
+      Require(manager.Tracks.Count == 2);
+      paste.PerformClick();
+      Require(destination.CloneSamples().SequenceEqual(new float[] { 4, 40, 5, 50, 6, 60 }));
+      manager.SelectTrack(source);
+      source.SetSelection(0.1, 0.2);
+      copy.PerformClick();
+      Require(source.HasSelection && source.CloneSamples().SequenceEqual(new float[] { 1, 10, 2, 20, 3, 30 }));
+
+      manager.SelectTrack(destination);
+      manager.Seek(0.4);
+      destination.SetSelection(0.5, 0.6);
+      paste.PerformClick();
+      Require(destination.CloneSamples().SequenceEqual(new float[] { 4, 40, 2, 20, 5, 50, 6, 60 }));
+      Require(!destination.HasSelection);
+
+      manager.SelectTrack(source);
+      source.SetSelection(0.2, 0.3);
+      cut.PerformClick();
+      Require(!source.HasSelection && source.CloneSamples().SequenceEqual(new float[] { 1, 10, 2, 20 }));
+      copy.PerformClick(); // An empty selection leaves the clipboard intact.
+      manager.SelectTrack(destination);
+      manager.Seek(0.5);
+      paste.PerformClick();
+      Require(destination.CloneSamples().SequenceEqual(new float[] { 4, 40, 3, 30, 2, 20, 5, 50, 6, 60 }));
+      Near(destination.StartTime, 0.4);
+      Near(manager.Viewport.Duration, 0.9);
+
+      pasteNewTrack.PerformClick();
+      Require(manager.Tracks.Count == 3);
+      Track pasted = manager.Tracks[^1];
+      Require(manager.SelectedTrack == pasted && pasted.PanDrawSamples.Height > 0);
+      Require(pasted.SampleRate == source.SampleRate && pasted.Channels == source.Channels);
+      Require(pasted.CloneSamples().SequenceEqual(new float[] { 3, 30 }));
+      Near(pasted.StartTime, 0);
+      pasted.Flip();
+
+      foreach (Track track in manager.Tracks.ToArray()) {
+        manager.RemTrack(track);
+        track.PanDrawSamples.Dispose();
+        track.Dispose();
+      }
+      Require(manager.SelectedTrack is null);
+      pasteNewTrack.PerformClick();
+      Require(manager.Tracks.Single().CloneSamples().SequenceEqual(new float[] { 3, 30 }));
+    });
+
     Check("modulation dialogs apply settings only when confirmed", () => {
       (Func<FrmEditModulation> CreateDialog, Action<Track> ApplyDefaults)[] effects = {
         (() => new FrmEditPhaser(), track => track.Phaser()),

@@ -198,6 +198,24 @@ public class Track : IDisposable
         ReplaceSamples(remaining);
     }
 
+    internal float[] CopySelection() => samples.AsSpan(
+        SelectionStartFrame * channels,
+        (SelectionEndFrame - SelectionStartFrame) * channels).ToArray();
+
+    internal void PasteSamples(double playheadTime, ReadOnlySpan<float> clip)
+    {
+        int frame = HasSelection
+            ? SelectionStartFrame
+            : (int)Math.Clamp(Math.Round((playheadTime - StartTime) * sampleRate), 0, samples.Length / channels);
+        int index = frame * channels;
+
+        var result = new float[checked(samples.Length + clip.Length)];
+        samples.AsSpan(0, index).CopyTo(result);
+        clip.CopyTo(result.AsSpan(index));
+        samples.AsSpan(index).CopyTo(result.AsSpan(index + clip.Length));
+        ReplaceSamples(result);
+    }
+
     public void DrawSelection(Graphics g, TimelineViewport viewport)
     {
         if (!HasSelection || PanDrawSamples is null) return;

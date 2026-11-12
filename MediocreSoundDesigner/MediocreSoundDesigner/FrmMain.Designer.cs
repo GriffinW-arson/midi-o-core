@@ -42,6 +42,10 @@
 			menuFileSave = new ToolStripMenuItem();
 			exportToToolStripMenuItem = new ToolStripMenuItem();
 			menuEdit = new ToolStripMenuItem();
+			menuEditCut = new ToolStripMenuItem();
+			menuEditCopy = new ToolStripMenuItem();
+			menuEditPaste = new ToolStripMenuItem();
+			menuEditPasteNewTrack = new ToolStripMenuItem();
 			menuEditDelete = new ToolStripMenuItem();
 			toolStripSeparator3 = new ToolStripSeparator();
 			menuEditFlip = new ToolStripMenuItem();
@@ -168,10 +172,37 @@
 			// 
 			// menuEdit
 			// 
-			menuEdit.DropDownItems.AddRange(new ToolStripItem[] { menuEditDelete, toolStripSeparator3, menuEditFlip, menuEditReverse, menuEditVolume, menuEditEliminateSilence, toolStripSeparator4, normalizeToolStripMenuItem, phaserToolStripMenuItem, chorusToolStripMenuItem });
+			menuEdit.DropDownItems.AddRange(new ToolStripItem[] { menuEditCut, menuEditCopy, menuEditPaste, menuEditPasteNewTrack, menuEditDelete, toolStripSeparator3, menuEditFlip, menuEditReverse, menuEditVolume, menuEditEliminateSilence, toolStripSeparator4, normalizeToolStripMenuItem, phaserToolStripMenuItem, chorusToolStripMenuItem });
 			menuEdit.Name = "menuEdit";
 			menuEdit.Size = new Size(39, 20);
 			menuEdit.Text = "E&dit";
+			//
+			// menuEditCut
+			//
+			menuEditCut.Name = "menuEditCut";
+			menuEditCut.ShortcutKeys = Keys.Control | Keys.X;
+			menuEditCut.Text = "Cut";
+			menuEditCut.Click += menuEditClipboard_Click;
+			//
+			// menuEditCopy
+			//
+			menuEditCopy.Name = "menuEditCopy";
+			menuEditCopy.ShortcutKeys = Keys.Control | Keys.C;
+			menuEditCopy.Text = "Copy";
+			menuEditCopy.Click += menuEditClipboard_Click;
+			//
+			// menuEditPaste
+			//
+			menuEditPaste.Name = "menuEditPaste";
+			menuEditPaste.ShortcutKeys = Keys.Control | Keys.V;
+			menuEditPaste.Text = "Paste";
+			menuEditPaste.Click += menuEditClipboard_Click;
+			//
+			// menuEditPasteNewTrack
+			//
+			menuEditPasteNewTrack.Name = "menuEditPasteNewTrack";
+			menuEditPasteNewTrack.Text = "Paste to New Track";
+			menuEditPasteNewTrack.Click += menuEditClipboard_Click;
 			// 
 			// menuEditDelete
 			// 
@@ -231,14 +262,14 @@
 			// 
 			phaserToolStripMenuItem.Name = "phaserToolStripMenuItem";
 			phaserToolStripMenuItem.Size = new Size(180, 22);
-			phaserToolStripMenuItem.Text = "Phaser";
+			phaserToolStripMenuItem.Text = "Phaser...";
 			phaserToolStripMenuItem.Click += phaserToolStripMenuItem_Click;
 			// 
 			// chorusToolStripMenuItem
 			// 
 			chorusToolStripMenuItem.Name = "chorusToolStripMenuItem";
 			chorusToolStripMenuItem.Size = new Size(180, 22);
-			chorusToolStripMenuItem.Text = "Chorus";
+			chorusToolStripMenuItem.Text = "Chorus...";
 			chorusToolStripMenuItem.Click += chorusToolStripMenuItem_Click;
 			// 
 			// menuGen
@@ -285,7 +316,7 @@
 			// 
 			zoomToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { fitToolStripMenuItem, toolStripMenuItem2, toolStripMenuItem3, toolStripMenuItem4, toolStripMenuItem5 });
 			zoomToolStripMenuItem.Name = "zoomToolStripMenuItem";
-			zoomToolStripMenuItem.Size = new Size(160, 22);
+			zoomToolStripMenuItem.Size = new Size(181, 22);
 			zoomToolStripMenuItem.Text = "Zoom";
 			// 
 			// fitToolStripMenuItem
@@ -326,27 +357,28 @@
 			// followPlayheadToolStripMenuItem
 			// 
 			followPlayheadToolStripMenuItem.Name = "followPlayheadToolStripMenuItem";
-			followPlayheadToolStripMenuItem.Size = new Size(160, 22);
+			followPlayheadToolStripMenuItem.Size = new Size(181, 22);
 			followPlayheadToolStripMenuItem.Text = "Follow Playhead";
 			followPlayheadToolStripMenuItem.Click += followPlayheadToolStripMenuItem_Click;
-			//
+			// 
 			// stretchTrackHeightToolStripMenuItem
-			//
+			// 
 			stretchTrackHeightToolStripMenuItem.CheckOnClick = true;
 			stretchTrackHeightToolStripMenuItem.Name = "stretchTrackHeightToolStripMenuItem";
+			stretchTrackHeightToolStripMenuItem.Size = new Size(181, 22);
 			stretchTrackHeightToolStripMenuItem.Text = "Stretch Track Height";
 			stretchTrackHeightToolStripMenuItem.CheckedChanged += stretchTrackHeightToolStripMenuItem_CheckedChanged;
 			// 
 			// toolStripSeparator2
 			// 
 			toolStripSeparator2.Name = "toolStripSeparator2";
-			toolStripSeparator2.Size = new Size(157, 6);
+			toolStripSeparator2.Size = new Size(178, 6);
 			// 
 			// appearanceToolStripMenuItem
 			// 
 			appearanceToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { defaultToolStripMenuItem, redToolStripMenuItem, greenToolStripMenuItem, blueToolStripMenuItem, darkToolStripMenuItem, lightToolStripMenuItem });
 			appearanceToolStripMenuItem.Name = "appearanceToolStripMenuItem";
-			appearanceToolStripMenuItem.Size = new Size(160, 22);
+			appearanceToolStripMenuItem.Size = new Size(181, 22);
 			appearanceToolStripMenuItem.Text = "Appearance";
 			appearanceToolStripMenuItem.Click += appearanceToolStripMenuItem_Click;
 			// 
@@ -449,9 +481,9 @@
 			btnEnd.UseVisualStyleBackColor = false;
 			btnEnd.Click += btnEnd_Click;
 			btnEnd.MouseDown += transportButton_MouseDown;
-			//
+			// 
 			// btnSave
-			//
+			// 
 			btnSave.AccessibleName = "Save audio";
 			btnSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
 			btnSave.BackColor = Color.Transparent;
@@ -468,9 +500,9 @@
 			btnSave.UseVisualStyleBackColor = false;
 			btnSave.Click += btnSave_Click;
 			btnSave.MouseDown += transportButton_MouseDown;
-			//
+			// 
 			// btnLoad
-			//
+			// 
 			btnLoad.AccessibleName = "Load audio";
 			btnLoad.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
 			btnLoad.BackColor = Color.Transparent;
@@ -613,6 +645,10 @@
     private TrackBar trkDrawTimescale;
     private ColorDialog colorDialog;
     private ToolStripMenuItem menuEditEliminateSilence;
+    private ToolStripMenuItem menuEditCut;
+    private ToolStripMenuItem menuEditCopy;
+    private ToolStripMenuItem menuEditPaste;
+    private ToolStripMenuItem menuEditPasteNewTrack;
     private ToolStripMenuItem menuEditDelete;
     private Label lblPlayhead;
     private ToolStripMenuItem menuGenRecord;
