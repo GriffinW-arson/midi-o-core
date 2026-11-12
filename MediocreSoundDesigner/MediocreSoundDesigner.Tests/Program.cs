@@ -417,6 +417,37 @@ internal static class Program {
       Require(manager.Tracks.Contains(track), "Deleting all selected audio should retain the track itself.");
     });
 
+    Check("modulation dialogs apply settings only when confirmed", () => {
+      (Func<FrmEditModulation> CreateDialog, Action<Track> ApplyDefaults)[] effects = {
+        (() => new FrmEditPhaser(), track => track.Phaser()),
+        (() => new FrmEditChorus(), track => track.Chorus())
+      };
+      float[] original = Enumerable.Repeat(0.5f, 100).ToArray();
+      foreach (var effect in effects) {
+        using var track = new Track((float[])original.Clone(), 1000);
+        track.SetSelection(0.01, 0.09);
+        using var defaults = new Track((float[])original.Clone(), 1000);
+        defaults.SetSelection(0.01, 0.09);
+        effect.ApplyDefaults(defaults);
+
+        using var dialog = effect.CreateDialog();
+        dialog.SetSound(track);
+        var mix = dialog.Controls.OfType<NumericUpDown>().Single(input => input.AccessibleName == "Mix (%)");
+        mix.Value = 100;
+        dialog.btnCancel_Click(dialog.CancelButton, EventArgs.Empty);
+        Require(dialog.DialogResult == DialogResult.Cancel && track.CloneSamples().SequenceEqual(original));
+
+        using var applyDialog = effect.CreateDialog();
+        applyDialog.SetSound(track);
+        applyDialog.Controls.OfType<NumericUpDown>().Single(input => input.AccessibleName == "Mix (%)").Value = 100;
+        applyDialog.btnApply_Click(applyDialog.AcceptButton, EventArgs.Empty);
+        float[] edited = track.CloneSamples();
+        Require(applyDialog.DialogResult == DialogResult.OK);
+        Require(edited[..10].SequenceEqual(original[..10]) && edited[90..].SequenceEqual(original[90..]));
+        Require(!edited.SequenceEqual(original) && !edited.SequenceEqual(defaults.CloneSamples()));
+      }
+    });
+
     Check("form layout and viewport integration", () => {
       using var form = new FrmMain();
       var field = typeof(FrmMain).GetField("trackManager", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -425,10 +456,22 @@ internal static class Program {
       var track = new Track(new float[44100]);
       createPanel.Invoke(form, new object[] { track });
       manager.AddTrack(track);
+      var viewer = track.PanDrawSamples.Parent;
+      var viewMenu = (ToolStripMenuItem)form.MainMenuStrip.Items["viewToolStripMenuItem"];
+      var stretchTrackHeight = (ToolStripMenuItem)viewMenu.DropDownItems["stretchTrackHeightToolStripMenuItem"];
+      Require(!stretchTrackHeight.Checked);
+      int startupTrackHeightLimit = viewer.ClientSize.Height / 2;
+      form.ClientSize = new Size(1000, form.ClientSize.Height + 100);
+      Require(track.PanDrawSamples.Height == startupTrackHeightLimit);
+      stretchTrackHeight.PerformClick();
+      Require(stretchTrackHeight.Checked && track.PanDrawSamples.Height == viewer.ClientSize.Height - 1);
       form.ClientSize = new Size(1000, 700);
+      Require(track.PanDrawSamples.Height == viewer.ClientSize.Height - 1);
+      stretchTrackHeight.PerformClick();
+      Require(!stretchTrackHeight.Checked);
       Near(manager.Viewport.Width, track.PanDrawSamples.ClientSize.Width);
       Near(manager.Viewport.Duration, 1);
-      Require(track.PanDrawSamples.Height > 0);
+      Require(track.PanDrawSamples.Height == startupTrackHeightLimit);
 
       float[] song = new float[180000];
       for (int i = 0; i < song.Length; i++) song[i] = (float)(Math.Sin(i * 0.4) * (0.2 + 0.7 * Math.Abs(Math.Sin(i * 0.0001))));
@@ -436,6 +479,9 @@ internal static class Program {
       createPanel.Invoke(form, new object[] { longTrack });
       manager.AddTrack(longTrack);
       form.ClientSize = new Size(1100, 740);
+      Require(track.PanDrawSamples.Height == viewer.ClientSize.Height / 2 - 1);
+      Require(longTrack.PanDrawSamples.Height == track.PanDrawSamples.Height);
+      Require(longTrack.PanDrawSamples.Top == track.PanDrawSamples.Bottom);
       manager.Viewport.SetZoom(0.85);
       // Refresh the controls after changing the model, as the slider handler does.
       typeof(FrmMain).GetMethod("RefreshTimelineView", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, null);

@@ -64,6 +64,7 @@ public partial class FrmMain : Form, IMessageFilter
 
 	// fields
 	private TrackManager trackManager;
+	private readonly int maxTrackHeight;
 	private const int ScrollSteps = 1_000_000;
 	private Button pressedTransportButton;
 	private Track regionDragTrack;
@@ -87,6 +88,7 @@ public partial class FrmMain : Form, IMessageFilter
 	public FrmMain()
 	{
 		InitializeComponent();
+		maxTrackHeight = panTracks.ClientSize.Height / 2;
 		Setup();
 	}
 
@@ -600,7 +602,10 @@ public partial class FrmMain : Form, IMessageFilter
 		{
 			track.PanDrawSamples.Left = 0;
 			track.PanDrawSamples.Width = panTracks.ClientSize.Width;
-			track.PanDrawSamples.Height = Math.Max(1, panTracks.ClientSize.Height / trackManager.Tracks.Count - 1);
+			int availableHeight = panTracks.ClientSize.Height / trackManager.Tracks.Count - 1;
+			int trackHeight = stretchTrackHeightToolStripMenuItem.Checked
+				? availableHeight : Math.Min(availableHeight, maxTrackHeight);
+			track.PanDrawSamples.Height = Math.Max(1, trackHeight);
 			track.PanDrawSamples.Top = top;
 			track.PanDrawSamples.Invalidate();
 			top += track.PanDrawSamples.Height;
@@ -672,6 +677,11 @@ public partial class FrmMain : Form, IMessageFilter
 		chkFollowPlayback.Checked = !chkFollowPlayback.Checked;
 	}
 
+	private void stretchTrackHeightToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
+	{
+		UpdateSizes();
+	}
+
 	private void chkFollowPlayback_CheckedChanged(object sender, EventArgs e)
 	{
 		followPlayheadToolStripMenuItem.Checked = chkFollowPlayback.Checked;
@@ -719,11 +729,17 @@ public partial class FrmMain : Form, IMessageFilter
 
 	private void phaserToolStripMenuItem_Click(object sender, EventArgs e)
 	{
-		trackManager.SelectedTrack?.Phaser();
+		if (trackManager.SelectedTrack is not Track track) return;
+		using var dialog = new FrmEditPhaser();
+		dialog.SetSound(track);
+		dialog.ShowDialog(this);
 	}
 
 	private void chorusToolStripMenuItem_Click(object sender, EventArgs e)
 	{
-		trackManager.SelectedTrack?.Chorus();
+		if (trackManager.SelectedTrack is not Track track) return;
+		using var dialog = new FrmEditChorus();
+		dialog.SetSound(track);
+		dialog.ShowDialog(this);
 	}
 }

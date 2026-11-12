@@ -65,6 +65,7 @@
 			toolStripMenuItem4 = new ToolStripMenuItem();
 			toolStripMenuItem5 = new ToolStripMenuItem();
 			followPlayheadToolStripMenuItem = new ToolStripMenuItem();
+			stretchTrackHeightToolStripMenuItem = new ToolStripMenuItem();
 			toolStripSeparator2 = new ToolStripSeparator();
 			appearanceToolStripMenuItem = new ToolStripMenuItem();
 			defaultToolStripMenuItem = new ToolStripMenuItem();
@@ -275,7 +276,7 @@
 			// 
 			// viewToolStripMenuItem
 			// 
-			viewToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { zoomToolStripMenuItem, followPlayheadToolStripMenuItem, toolStripSeparator2, appearanceToolStripMenuItem });
+			viewToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { zoomToolStripMenuItem, followPlayheadToolStripMenuItem, stretchTrackHeightToolStripMenuItem, toolStripSeparator2, appearanceToolStripMenuItem });
 			viewToolStripMenuItem.Name = "viewToolStripMenuItem";
 			viewToolStripMenuItem.Size = new Size(44, 20);
 			viewToolStripMenuItem.Text = "View";
@@ -328,6 +329,13 @@
 			followPlayheadToolStripMenuItem.Size = new Size(160, 22);
 			followPlayheadToolStripMenuItem.Text = "Follow Playhead";
 			followPlayheadToolStripMenuItem.Click += followPlayheadToolStripMenuItem_Click;
+			//
+			// stretchTrackHeightToolStripMenuItem
+			//
+			stretchTrackHeightToolStripMenuItem.CheckOnClick = true;
+			stretchTrackHeightToolStripMenuItem.Name = "stretchTrackHeightToolStripMenuItem";
+			stretchTrackHeightToolStripMenuItem.Text = "Stretch Track Height";
+			stretchTrackHeightToolStripMenuItem.CheckedChanged += stretchTrackHeightToolStripMenuItem_CheckedChanged;
 			// 
 			// toolStripSeparator2
 			// 
@@ -617,6 +625,7 @@
 		private ToolStripMenuItem toolStripMenuItem4;
 		private ToolStripMenuItem toolStripMenuItem5;
 		private ToolStripMenuItem followPlayheadToolStripMenuItem;
+		private ToolStripMenuItem stretchTrackHeightToolStripMenuItem;
         private ToolStripMenuItem appearanceToolStripMenuItem;
         private ToolStripMenuItem defaultToolStripMenuItem;
         private ToolStripMenuItem redToolStripMenuItem;

@@ -266,17 +266,22 @@ public class Track : IDisposable
 		SamplesChanged();
 	}
 
-	public void Phaser()
+	internal const int DefaultPhaserStages = 4;
+	internal const decimal DefaultPhaserRateHz = 0.4m;
+	internal const int DefaultPhaserMinFrequency = 300;
+	internal const int DefaultPhaserMaxFrequency = 1800;
+	internal const int DefaultPhaserMixPercent = 50;
+
+	public void Phaser() => Phaser(DefaultPhaserStages, (double)DefaultPhaserRateHz,
+		DefaultPhaserMinFrequency, DefaultPhaserMaxFrequency, DefaultPhaserMixPercent / 100.0);
+
+	internal void Phaser(int stages, double rateHz, double minFrequencyHz, double maxFrequencyHz, double mix)
 	{
 		var range = EditFrames;
 		if (range.End <= range.First) return;
 
-		const int stages = 4;
-		const double rateHz = 0.4;
-		const double mix = 0.5;
-
-		double minFrequency = Math.Min(300.0, sampleRate * 0.05);
-		double maxFrequency = Math.Min(1800.0, sampleRate * 0.4);
+		double minFrequency = Math.Min(minFrequencyHz, sampleRate * 0.05);
+		double maxFrequency = Math.Min(maxFrequencyHz, sampleRate * 0.4);
 
 		double[,] previousInput = new double[channels, stages];
 		double[,] previousOutput = new double[channels, stages];
@@ -316,15 +321,18 @@ public class Track : IDisposable
 		SamplesChanged();
 	}
 
-	public void Chorus()
+	internal const decimal DefaultChorusRateHz = 0.8m;
+	internal const int DefaultChorusDelayMs = 20;
+	internal const int DefaultChorusDepthMs = 5;
+	internal const int DefaultChorusMixPercent = 35;
+
+	public void Chorus() => Chorus((double)DefaultChorusRateHz, DefaultChorusDelayMs,
+		DefaultChorusDepthMs, DefaultChorusMixPercent / 100.0);
+
+	internal void Chorus(double rateHz, double baseDelayMs, double depthMs, double mix)
 	{
 		var range = EditFrames;
 		if (range.End <= range.First) return;
-
-		const double rateHz = .8;
-		const double baseDelayMs = 20;
-		const double depthMs = 5;
-		const double mix = 0.35;
 
 		int bufferFrames = Math.Max(2,
 			(int)Math.Ceiling(

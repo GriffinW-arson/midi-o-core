@@ -69,7 +69,7 @@
 			// 
 			nudMinDuration.DecimalPlaces = 2;
 			nudMinDuration.Increment = new decimal(new int[] { 5, 0, 0, 131072 });
-			nudMinDuration.Location = new Point(387, 70);
+			nudMinDuration.Location = new Point(388, 64);
 			nudMinDuration.Maximum = new decimal(new int[] { 10, 0, 0, 0 });
 			nudMinDuration.Name = "nudMinDuration";
 			nudMinDuration.Size = new Size(114, 43);
@@ -79,7 +79,7 @@
 			// label1
 			// 
 			label1.AutoSize = true;
-			label1.Location = new Point(119, 70);
+			label1.Location = new Point(120, 72);
 			label1.Name = "label1";
 			label1.Size = new Size(262, 37);
 			label1.TabIndex = 10;
@@ -88,7 +88,7 @@
 			// label2
 			// 
 			label2.AutoSize = true;
-			label2.Location = new Point(236, 135);
+			label2.Location = new Point(236, 116);
 			label2.Name = "label2";
 			label2.Size = new Size(145, 37);
 			label2.TabIndex = 12;
@@ -98,7 +98,7 @@
 			// 
 			nudThreshold.DecimalPlaces = 4;
 			nudThreshold.Increment = new decimal(new int[] { 25, 0, 0, 327680 });
-			nudThreshold.Location = new Point(387, 133);
+			nudThreshold.Location = new Point(388, 112);
 			nudThreshold.Maximum = new decimal(new int[] { 1, 0, 0, 0 });
 			nudThreshold.Name = "nudThreshold";
 			nudThreshold.Size = new Size(114, 43);
@@ -108,7 +108,7 @@
 			// label3
 			// 
 			label3.AutoSize = true;
-			label3.Location = new Point(12, 19);
+			label3.Location = new Point(12, 20);
 			label3.Name = "label3";
 			label3.Size = new Size(369, 37);
 			label3.TabIndex = 13;
@@ -141,7 +141,7 @@
 			Controls.Add(btnApply);
 			Icon = (Icon)resources.GetObject("$this.Icon");
 			Name = "FrmEditEliminateSilence";
-			Text = "FrmEditEliminateSilence";
+			Text = "Eliminate Silence";
 			((System.ComponentModel.ISupportInitialize)nudMinDuration).EndInit();
 			((System.ComponentModel.ISupportInitialize)nudThreshold).EndInit();
 			ResumeLayout(false);
