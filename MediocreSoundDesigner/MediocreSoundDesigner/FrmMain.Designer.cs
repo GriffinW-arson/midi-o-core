@@ -31,8 +31,18 @@
 		private void InitializeComponent()
 		{
 			components = new System.ComponentModel.Container();
-			buttonToolTips = new ToolTip(components);
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMain));
+			buttonToolTips = new ToolTip(components);
+			btnPlay = new Button();
+			btnReset = new Button();
+			btnEnd = new Button();
+			btnSave = new Button();
+			btnLoad = new Button();
+			btnCut = new Button();
+			btnCopy = new Button();
+			btnPaste = new Button();
+			btnPasteNewTrack = new Button();
+			btnDelete = new Button();
 			panTracks = new Panel();
 			lblPlayhead = new Label();
 			lblTimelineLeft = new Label();
@@ -80,16 +90,6 @@
 			blueToolStripMenuItem = new ToolStripMenuItem();
 			darkToolStripMenuItem = new ToolStripMenuItem();
 			lightToolStripMenuItem = new ToolStripMenuItem();
-			btnPlay = new Button();
-			btnReset = new Button();
-			btnEnd = new Button();
-			btnSave = new Button();
-			btnLoad = new Button();
-			btnCut = new Button();
-			btnCopy = new Button();
-			btnPaste = new Button();
-			btnPasteNewTrack = new Button();
-			btnDelete = new Button();
 			transportFeedback = new System.Windows.Forms.Timer(components);
 			tmrUpdate = new System.Windows.Forms.Timer(components);
 			sfdSaveFile = new SaveFileDialog();
@@ -102,6 +102,207 @@
 			menu.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)trkDrawTimescale).BeginInit();
 			SuspendLayout();
+			// 
+			// btnPlay
+			// 
+			btnPlay.AccessibleName = "Play";
+			btnPlay.Anchor = AnchorStyles.Bottom;
+			btnPlay.BackColor = Color.Transparent;
+			btnPlay.BackgroundImage = Properties.Resources.transportPlay;
+			btnPlay.BackgroundImageLayout = ImageLayout.Zoom;
+			btnPlay.FlatAppearance.BorderSize = 0;
+			btnPlay.FlatAppearance.MouseDownBackColor = Color.Transparent;
+			btnPlay.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			btnPlay.FlatStyle = FlatStyle.Flat;
+			btnPlay.Font = new Font("Segoe UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+			btnPlay.Location = new Point(772, 609);
+			btnPlay.Name = "btnPlay";
+			btnPlay.Size = new Size(60, 60);
+			btnPlay.TabIndex = 6;
+			buttonToolTips.SetToolTip(btnPlay, "Play");
+			btnPlay.UseVisualStyleBackColor = false;
+			btnPlay.Click += btnPlay_Click;
+			btnPlay.MouseDown += transportButton_MouseDown;
+			// 
+			// btnReset
+			// 
+			btnReset.AccessibleName = "Reset to beginning";
+			btnReset.Anchor = AnchorStyles.Bottom;
+			btnReset.BackColor = Color.Transparent;
+			btnReset.BackgroundImage = Properties.Resources.transportReset;
+			btnReset.BackgroundImageLayout = ImageLayout.Zoom;
+			btnReset.FlatAppearance.BorderSize = 0;
+			btnReset.FlatAppearance.MouseDownBackColor = Color.Transparent;
+			btnReset.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			btnReset.FlatStyle = FlatStyle.Flat;
+			btnReset.Location = new Point(704, 609);
+			btnReset.Name = "btnReset";
+			btnReset.Size = new Size(60, 60);
+			btnReset.TabIndex = 5;
+			buttonToolTips.SetToolTip(btnReset, "Reset");
+			btnReset.UseVisualStyleBackColor = false;
+			btnReset.Click += btnReset_Click;
+			btnReset.MouseDown += transportButton_MouseDown;
+			// 
+			// btnEnd
+			// 
+			btnEnd.AccessibleName = "Go to end";
+			btnEnd.Anchor = AnchorStyles.Bottom;
+			btnEnd.BackColor = Color.Transparent;
+			btnEnd.BackgroundImage = Properties.Resources.transportEnd;
+			btnEnd.BackgroundImageLayout = ImageLayout.Zoom;
+			btnEnd.FlatAppearance.BorderSize = 0;
+			btnEnd.FlatAppearance.MouseDownBackColor = Color.Transparent;
+			btnEnd.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			btnEnd.FlatStyle = FlatStyle.Flat;
+			btnEnd.Location = new Point(840, 609);
+			btnEnd.Name = "btnEnd";
+			btnEnd.Size = new Size(60, 60);
+			btnEnd.TabIndex = 8;
+			buttonToolTips.SetToolTip(btnEnd, "End");
+			btnEnd.UseVisualStyleBackColor = false;
+			btnEnd.Click += btnEnd_Click;
+			btnEnd.MouseDown += transportButton_MouseDown;
+			// 
+			// btnSave
+			// 
+			btnSave.AccessibleName = "Save audio";
+			btnSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+			btnSave.BackColor = Color.Transparent;
+			btnSave.BackgroundImage = Properties.Resources.transportSave;
+			btnSave.BackgroundImageLayout = ImageLayout.Zoom;
+			btnSave.FlatAppearance.BorderSize = 0;
+			btnSave.FlatAppearance.MouseDownBackColor = Color.Transparent;
+			btnSave.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			btnSave.FlatStyle = FlatStyle.Flat;
+			btnSave.Location = new Point(1461, 609);
+			btnSave.Name = "btnSave";
+			btnSave.Size = new Size(60, 60);
+			btnSave.TabIndex = 13;
+			buttonToolTips.SetToolTip(btnSave, "Save");
+			btnSave.UseVisualStyleBackColor = false;
+			btnSave.Click += btnSave_Click;
+			btnSave.MouseDown += transportButton_MouseDown;
+			// 
+			// btnLoad
+			// 
+			btnLoad.AccessibleName = "Load audio";
+			btnLoad.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+			btnLoad.BackColor = Color.Transparent;
+			btnLoad.BackgroundImage = Properties.Resources.transportLoad;
+			btnLoad.BackgroundImageLayout = ImageLayout.Zoom;
+			btnLoad.FlatAppearance.BorderSize = 0;
+			btnLoad.FlatAppearance.MouseDownBackColor = Color.Transparent;
+			btnLoad.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			btnLoad.FlatStyle = FlatStyle.Flat;
+			btnLoad.Location = new Point(1529, 609);
+			btnLoad.Name = "btnLoad";
+			btnLoad.Size = new Size(60, 60);
+			btnLoad.TabIndex = 14;
+			buttonToolTips.SetToolTip(btnLoad, "Load");
+			btnLoad.UseVisualStyleBackColor = false;
+			btnLoad.Click += btnLoad_Click;
+			btnLoad.MouseDown += transportButton_MouseDown;
+			// 
+			// btnCut
+			// 
+			btnCut.AccessibleName = "Cut";
+			btnCut.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+			btnCut.BackColor = Color.Transparent;
+			btnCut.BackgroundImage = Properties.Resources.editCut;
+			btnCut.BackgroundImageLayout = ImageLayout.Zoom;
+			btnCut.FlatAppearance.BorderSize = 0;
+			btnCut.FlatAppearance.MouseDownBackColor = Color.Transparent;
+			btnCut.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			btnCut.FlatStyle = FlatStyle.Flat;
+			btnCut.Location = new Point(15, 609);
+			btnCut.Name = "btnCut";
+			btnCut.Size = new Size(60, 60);
+			btnCut.TabIndex = 15;
+			buttonToolTips.SetToolTip(btnCut, "Cut");
+			btnCut.UseVisualStyleBackColor = false;
+			btnCut.Click += editButton_Click;
+			btnCut.MouseDown += transportButton_MouseDown;
+			// 
+			// btnCopy
+			// 
+			btnCopy.AccessibleName = "Copy";
+			btnCopy.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+			btnCopy.BackColor = Color.Transparent;
+			btnCopy.BackgroundImage = Properties.Resources.editCopy;
+			btnCopy.BackgroundImageLayout = ImageLayout.Zoom;
+			btnCopy.FlatAppearance.BorderSize = 0;
+			btnCopy.FlatAppearance.MouseDownBackColor = Color.Transparent;
+			btnCopy.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			btnCopy.FlatStyle = FlatStyle.Flat;
+			btnCopy.Location = new Point(83, 609);
+			btnCopy.Name = "btnCopy";
+			btnCopy.Size = new Size(60, 60);
+			btnCopy.TabIndex = 16;
+			buttonToolTips.SetToolTip(btnCopy, "Copy");
+			btnCopy.UseVisualStyleBackColor = false;
+			btnCopy.Click += editButton_Click;
+			btnCopy.MouseDown += transportButton_MouseDown;
+			// 
+			// btnPaste
+			// 
+			btnPaste.AccessibleName = "Paste";
+			btnPaste.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+			btnPaste.BackColor = Color.Transparent;
+			btnPaste.BackgroundImage = Properties.Resources.editPaste;
+			btnPaste.BackgroundImageLayout = ImageLayout.Zoom;
+			btnPaste.FlatAppearance.BorderSize = 0;
+			btnPaste.FlatAppearance.MouseDownBackColor = Color.Transparent;
+			btnPaste.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			btnPaste.FlatStyle = FlatStyle.Flat;
+			btnPaste.Location = new Point(151, 609);
+			btnPaste.Name = "btnPaste";
+			btnPaste.Size = new Size(60, 60);
+			btnPaste.TabIndex = 17;
+			buttonToolTips.SetToolTip(btnPaste, "Paste");
+			btnPaste.UseVisualStyleBackColor = false;
+			btnPaste.Click += editButton_Click;
+			btnPaste.MouseDown += transportButton_MouseDown;
+			// 
+			// btnPasteNewTrack
+			// 
+			btnPasteNewTrack.AccessibleName = "Paste to New Track";
+			btnPasteNewTrack.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+			btnPasteNewTrack.BackColor = Color.Transparent;
+			btnPasteNewTrack.BackgroundImage = Properties.Resources.editPasteNewTrack;
+			btnPasteNewTrack.BackgroundImageLayout = ImageLayout.Zoom;
+			btnPasteNewTrack.FlatAppearance.BorderSize = 0;
+			btnPasteNewTrack.FlatAppearance.MouseDownBackColor = Color.Transparent;
+			btnPasteNewTrack.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			btnPasteNewTrack.FlatStyle = FlatStyle.Flat;
+			btnPasteNewTrack.Location = new Point(219, 609);
+			btnPasteNewTrack.Name = "btnPasteNewTrack";
+			btnPasteNewTrack.Size = new Size(60, 60);
+			btnPasteNewTrack.TabIndex = 18;
+			buttonToolTips.SetToolTip(btnPasteNewTrack, "Paste to New Track");
+			btnPasteNewTrack.UseVisualStyleBackColor = false;
+			btnPasteNewTrack.Click += editButton_Click;
+			btnPasteNewTrack.MouseDown += transportButton_MouseDown;
+			// 
+			// btnDelete
+			// 
+			btnDelete.AccessibleName = "Delete";
+			btnDelete.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+			btnDelete.BackColor = Color.Transparent;
+			btnDelete.BackgroundImage = Properties.Resources.editDelete;
+			btnDelete.BackgroundImageLayout = ImageLayout.Zoom;
+			btnDelete.FlatAppearance.BorderSize = 0;
+			btnDelete.FlatAppearance.MouseDownBackColor = Color.Transparent;
+			btnDelete.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			btnDelete.FlatStyle = FlatStyle.Flat;
+			btnDelete.Location = new Point(287, 609);
+			btnDelete.Name = "btnDelete";
+			btnDelete.Size = new Size(60, 60);
+			btnDelete.TabIndex = 19;
+			buttonToolTips.SetToolTip(btnDelete, "Delete");
+			btnDelete.UseVisualStyleBackColor = false;
+			btnDelete.Click += editButton_Click;
+			btnDelete.MouseDown += transportButton_MouseDown;
 			// 
 			// panTracks
 			// 
@@ -174,21 +375,21 @@
 			// menuFileOpen
 			// 
 			menuFileOpen.Name = "menuFileOpen";
-			menuFileOpen.Size = new Size(132, 22);
+			menuFileOpen.Size = new Size(112, 22);
 			menuFileOpen.Text = "Open...";
 			menuFileOpen.Click += menuFileOpen_Click;
 			// 
 			// menuFileSave
 			// 
 			menuFileSave.Name = "menuFileSave";
-			menuFileSave.Size = new Size(132, 22);
+			menuFileSave.Size = new Size(112, 22);
 			menuFileSave.Text = "Save...";
 			menuFileSave.Click += menuFileSave_Click;
 			// 
 			// menuFileExit
 			// 
 			menuFileExit.Name = "menuFileExit";
-			menuFileExit.Size = new Size(132, 22);
+			menuFileExit.Size = new Size(112, 22);
 			menuFileExit.Text = "Exit";
 			menuFileExit.Click += menuFileExit_Click;
 			// 
@@ -450,197 +651,6 @@
 			lightToolStripMenuItem.Text = "Blue";
 			lightToolStripMenuItem.Click += lightToolStripMenuItem_Click;
 			// 
-			// btnPlay
-			// 
-			btnPlay.AccessibleName = "Play";
-			btnPlay.Anchor = AnchorStyles.Bottom;
-			btnPlay.BackColor = Color.Transparent;
-			btnPlay.BackgroundImage = Properties.Resources.transportPlay;
-			btnPlay.BackgroundImageLayout = ImageLayout.Zoom;
-			btnPlay.FlatAppearance.BorderSize = 0;
-			btnPlay.FlatAppearance.MouseDownBackColor = Color.Transparent;
-			btnPlay.FlatAppearance.MouseOverBackColor = Color.Transparent;
-			btnPlay.FlatStyle = FlatStyle.Flat;
-			btnPlay.Font = new Font("Segoe UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
-			btnPlay.Location = new Point(772, 609);
-			btnPlay.Name = "btnPlay";
-			btnPlay.Size = new Size(60, 60);
-			btnPlay.TabIndex = 6;
-			btnPlay.UseVisualStyleBackColor = false;
-			btnPlay.Click += btnPlay_Click;
-			btnPlay.MouseDown += transportButton_MouseDown;
-			// 
-			// btnReset
-			// 
-			btnReset.AccessibleName = "Reset to beginning";
-			btnReset.Anchor = AnchorStyles.Bottom;
-			btnReset.BackColor = Color.Transparent;
-			btnReset.BackgroundImage = Properties.Resources.transportReset;
-			btnReset.BackgroundImageLayout = ImageLayout.Zoom;
-			btnReset.FlatAppearance.BorderSize = 0;
-			btnReset.FlatAppearance.MouseDownBackColor = Color.Transparent;
-			btnReset.FlatAppearance.MouseOverBackColor = Color.Transparent;
-			btnReset.FlatStyle = FlatStyle.Flat;
-			btnReset.Location = new Point(704, 609);
-			btnReset.Name = "btnReset";
-			btnReset.Size = new Size(60, 60);
-			btnReset.TabIndex = 5;
-			btnReset.UseVisualStyleBackColor = false;
-			btnReset.Click += btnReset_Click;
-			btnReset.MouseDown += transportButton_MouseDown;
-			// 
-			// btnEnd
-			// 
-			btnEnd.AccessibleName = "Go to end";
-			btnEnd.Anchor = AnchorStyles.Bottom;
-			btnEnd.BackColor = Color.Transparent;
-			btnEnd.BackgroundImage = Properties.Resources.transportEnd;
-			btnEnd.BackgroundImageLayout = ImageLayout.Zoom;
-			btnEnd.FlatAppearance.BorderSize = 0;
-			btnEnd.FlatAppearance.MouseDownBackColor = Color.Transparent;
-			btnEnd.FlatAppearance.MouseOverBackColor = Color.Transparent;
-			btnEnd.FlatStyle = FlatStyle.Flat;
-			btnEnd.Location = new Point(840, 609);
-			btnEnd.Name = "btnEnd";
-			btnEnd.Size = new Size(60, 60);
-			btnEnd.TabIndex = 8;
-			btnEnd.UseVisualStyleBackColor = false;
-			btnEnd.Click += btnEnd_Click;
-			btnEnd.MouseDown += transportButton_MouseDown;
-			// 
-			// btnSave
-			// 
-			btnSave.AccessibleName = "Save audio";
-			btnSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-			btnSave.BackColor = Color.Transparent;
-			btnSave.BackgroundImage = Properties.Resources.transportSave;
-			btnSave.BackgroundImageLayout = ImageLayout.Zoom;
-			btnSave.FlatAppearance.BorderSize = 0;
-			btnSave.FlatAppearance.MouseDownBackColor = Color.Transparent;
-			btnSave.FlatAppearance.MouseOverBackColor = Color.Transparent;
-			btnSave.FlatStyle = FlatStyle.Flat;
-			btnSave.Location = new Point(1461, 609);
-			btnSave.Name = "btnSave";
-			btnSave.Size = new Size(60, 60);
-			btnSave.TabIndex = 13;
-			btnSave.UseVisualStyleBackColor = false;
-			btnSave.Click += btnSave_Click;
-			btnSave.MouseDown += transportButton_MouseDown;
-			// 
-			// btnLoad
-			// 
-			btnLoad.AccessibleName = "Load audio";
-			btnLoad.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-			btnLoad.BackColor = Color.Transparent;
-			btnLoad.BackgroundImage = Properties.Resources.transportLoad;
-			btnLoad.BackgroundImageLayout = ImageLayout.Zoom;
-			btnLoad.FlatAppearance.BorderSize = 0;
-			btnLoad.FlatAppearance.MouseDownBackColor = Color.Transparent;
-			btnLoad.FlatAppearance.MouseOverBackColor = Color.Transparent;
-			btnLoad.FlatStyle = FlatStyle.Flat;
-			btnLoad.Location = new Point(1529, 609);
-			btnLoad.Name = "btnLoad";
-			btnLoad.Size = new Size(60, 60);
-			btnLoad.TabIndex = 14;
-			btnLoad.UseVisualStyleBackColor = false;
-			btnLoad.Click += btnLoad_Click;
-			btnLoad.MouseDown += transportButton_MouseDown;
-			//
-			// btnCut
-			//
-			btnCut.AccessibleName = "Cut";
-			btnCut.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-			btnCut.BackColor = Color.Transparent;
-			btnCut.BackgroundImage = Properties.Resources.editCut;
-			btnCut.BackgroundImageLayout = ImageLayout.Zoom;
-			btnCut.FlatAppearance.BorderSize = 0;
-			btnCut.FlatAppearance.MouseDownBackColor = Color.Transparent;
-			btnCut.FlatAppearance.MouseOverBackColor = Color.Transparent;
-			btnCut.FlatStyle = FlatStyle.Flat;
-			btnCut.Location = new Point(15, 609);
-			btnCut.Name = "btnCut";
-			btnCut.Size = new Size(60, 60);
-			btnCut.TabIndex = 15;
-			btnCut.UseVisualStyleBackColor = false;
-			btnCut.Click += editButton_Click;
-			btnCut.MouseDown += transportButton_MouseDown;
-			//
-			// btnCopy
-			//
-			btnCopy.AccessibleName = "Copy";
-			btnCopy.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-			btnCopy.BackColor = Color.Transparent;
-			btnCopy.BackgroundImage = Properties.Resources.editCopy;
-			btnCopy.BackgroundImageLayout = ImageLayout.Zoom;
-			btnCopy.FlatAppearance.BorderSize = 0;
-			btnCopy.FlatAppearance.MouseDownBackColor = Color.Transparent;
-			btnCopy.FlatAppearance.MouseOverBackColor = Color.Transparent;
-			btnCopy.FlatStyle = FlatStyle.Flat;
-			btnCopy.Location = new Point(83, 609);
-			btnCopy.Name = "btnCopy";
-			btnCopy.Size = new Size(60, 60);
-			btnCopy.TabIndex = 16;
-			btnCopy.UseVisualStyleBackColor = false;
-			btnCopy.Click += editButton_Click;
-			btnCopy.MouseDown += transportButton_MouseDown;
-			//
-			// btnPaste
-			//
-			btnPaste.AccessibleName = "Paste";
-			btnPaste.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-			btnPaste.BackColor = Color.Transparent;
-			btnPaste.BackgroundImage = Properties.Resources.editPaste;
-			btnPaste.BackgroundImageLayout = ImageLayout.Zoom;
-			btnPaste.FlatAppearance.BorderSize = 0;
-			btnPaste.FlatAppearance.MouseDownBackColor = Color.Transparent;
-			btnPaste.FlatAppearance.MouseOverBackColor = Color.Transparent;
-			btnPaste.FlatStyle = FlatStyle.Flat;
-			btnPaste.Location = new Point(151, 609);
-			btnPaste.Name = "btnPaste";
-			btnPaste.Size = new Size(60, 60);
-			btnPaste.TabIndex = 17;
-			btnPaste.UseVisualStyleBackColor = false;
-			btnPaste.Click += editButton_Click;
-			btnPaste.MouseDown += transportButton_MouseDown;
-			//
-			// btnPasteNewTrack
-			//
-			btnPasteNewTrack.AccessibleName = "Paste to New Track";
-			btnPasteNewTrack.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-			btnPasteNewTrack.BackColor = Color.Transparent;
-			btnPasteNewTrack.BackgroundImage = Properties.Resources.editPasteNewTrack;
-			btnPasteNewTrack.BackgroundImageLayout = ImageLayout.Zoom;
-			btnPasteNewTrack.FlatAppearance.BorderSize = 0;
-			btnPasteNewTrack.FlatAppearance.MouseDownBackColor = Color.Transparent;
-			btnPasteNewTrack.FlatAppearance.MouseOverBackColor = Color.Transparent;
-			btnPasteNewTrack.FlatStyle = FlatStyle.Flat;
-			btnPasteNewTrack.Location = new Point(219, 609);
-			btnPasteNewTrack.Name = "btnPasteNewTrack";
-			btnPasteNewTrack.Size = new Size(60, 60);
-			btnPasteNewTrack.TabIndex = 18;
-			btnPasteNewTrack.UseVisualStyleBackColor = false;
-			btnPasteNewTrack.Click += editButton_Click;
-			btnPasteNewTrack.MouseDown += transportButton_MouseDown;
-			//
-			// btnDelete
-			//
-			btnDelete.AccessibleName = "Delete";
-			btnDelete.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-			btnDelete.BackColor = Color.Transparent;
-			btnDelete.BackgroundImage = Properties.Resources.editDelete;
-			btnDelete.BackgroundImageLayout = ImageLayout.Zoom;
-			btnDelete.FlatAppearance.BorderSize = 0;
-			btnDelete.FlatAppearance.MouseDownBackColor = Color.Transparent;
-			btnDelete.FlatAppearance.MouseOverBackColor = Color.Transparent;
-			btnDelete.FlatStyle = FlatStyle.Flat;
-			btnDelete.Location = new Point(287, 609);
-			btnDelete.Name = "btnDelete";
-			btnDelete.Size = new Size(60, 60);
-			btnDelete.TabIndex = 19;
-			btnDelete.UseVisualStyleBackColor = false;
-			btnDelete.Click += editButton_Click;
-			btnDelete.MouseDown += transportButton_MouseDown;
-			// 
 			// transportFeedback
 			// 
 			transportFeedback.Interval = 80;
@@ -731,18 +741,8 @@
 			KeyPreview = true;
 			MainMenuStrip = menu;
 			MinimumSize = new Size(940, 500);
-			buttonToolTips.SetToolTip(btnPlay, "Play");
-			buttonToolTips.SetToolTip(btnReset, "Reset");
-			buttonToolTips.SetToolTip(btnEnd, "End");
-			buttonToolTips.SetToolTip(btnSave, "Save");
-			buttonToolTips.SetToolTip(btnLoad, "Load");
-			buttonToolTips.SetToolTip(btnCut, "Cut");
-			buttonToolTips.SetToolTip(btnCopy, "Copy");
-			buttonToolTips.SetToolTip(btnPaste, "Paste");
-			buttonToolTips.SetToolTip(btnPasteNewTrack, "Paste to New Track");
-			buttonToolTips.SetToolTip(btnDelete, "Delete");
 			Name = "FrmMain";
-			Text = "Mediocore Sound Designer";
+			Text = "Mediocore";
 			FormClosing += FrmMain_FormClosing;
 			SizeChanged += FrmMain_SizeChanged;
 			panTracks.ResumeLayout(false);
