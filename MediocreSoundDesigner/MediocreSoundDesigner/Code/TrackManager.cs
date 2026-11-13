@@ -1,43 +1,118 @@
-﻿using NAudio.Wave;
+using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 
-namespace MediocreSoundDesigner; 
+namespace MediocreSoundDesigner;
 
-public class TrackManager {
+public class TrackManager : IDisposable {
   private Track pseudoCombinedTrack;
-  private Panel panContainer;
+  private readonly Panel panContainer;
+  private readonly Func<IWavePlayer> createOutput;
+  private bool playbackDirty;
+  private double cursorTime;
+  private bool pausedAtCursor;
+  public List<Track> Tracks { get; } = new();
+  public Track SelectedTrack { get; private set; }
+  public TimelineViewport Viewport { get; } = new();
+  public event EventHandler TimelineChanged;
+  public PlaybackState State => pausedAtCursor ? PlaybackState.Paused : pseudoCombinedTrack?.State ?? PlaybackState.Stopped;
+  public double PlaybackTime => Math.Clamp(pseudoCombinedTrack?.GetPlaybackTime() ?? cursorTime, 0, Viewport.Duration);
 
-  public List<Track> Tracks { get; private set; }
-	public Track SelectedTrack { get; private set; }
-  public int DrawTimescale { get; set; }
-  public PlaybackState State => pseudoCombinedTrack?.State ?? PlaybackState.Stopped;
-
-  public TrackManager(Panel panContainer) {
-		Tracks = new();
-    SelectedTrack = null;
-    pseudoCombinedTrack = null;
+  public TrackManager(Panel panContainer, Func<IWavePlayer> createOutput = null) {
     this.panContainer = panContainer;
+    this.createOutput = createOutput ?? (() => new WaveOut());
   }
 
-	public void AddTrack(Track track) {
-		Tracks.Add(track);
-	}
+  public void AddTrack(Track track) {
+    ResetPlayback();
+    Viewport.SetStart(0);
+    Tracks.Add(track);
+    track.Changed += TrackChanged;
+    RefreshTimeline();
+  }
 
-	public void RemTrack(Track track) {
-		Tracks.Remove(track);
-	}
+  public void RemTrack(Track track) {
+    ResetPlayback();
+    Viewport.SetStart(0);
+    track.Changed -= TrackChanged;
+    Tracks.Remove(track);
+    if (SelectedTrack == track) {
+      SelectedTrack = null;
+      if (Tracks.Count > 0) SelectTrack(Tracks[^1]);
+    }
+    RefreshTimeline();
+  }
 
-	public void SelectTrack(Track track) {
-		SelectedTrack = track;
-    Tracks.ForEach(track => {
-      track.PanDrawSamples.BorderStyle = BorderStyle.None;
-      track.PanDrawSamples.BackColor = Settings.Color.TrackBg_Unselected;
-    });
-    track.PanDrawSamples.BorderStyle = BorderStyle.Fixed3D;
-    track.PanDrawSamples.BackColor = Settings.Color.TrackBg_Selected;
+  private void TrackChanged(object sender, EventArgs e) {
+    if (State == PlaybackState.Playing) {
+      double position = PlaybackTime;
+      ResetPlayback();
+      StartPlayback(position);
+    }
+    else if (State == PlaybackState.Paused) {
+      // Keep the paused cursor, but never resume audio rendered before this edit
+      playbackDirty = true;
+    }
+    else ResetPlayback();
+    RefreshTimeline();
+  }
+
+  private void ResetPlayback() {
+    pseudoCombinedTrack?.Dispose();
+    pseudoCombinedTrack = null;
+    playbackDirty = false;
+    cursorTime = 0;
+    pausedAtCursor = false;
+  }
+
+  public void Seek(double seconds) {
+    double position = Math.Clamp(seconds, 0, Viewport.Duration);
+    PlaybackState previousState = State;
+    if (previousState == PlaybackState.Playing && position < Viewport.Duration) {
+      // Reuse the rendered mix instead of rebuilding the entire song for each seek.
+      pseudoCombinedTrack.SeekPlayback(position, createOutput);
+    }
+    else {
+      ResetPlayback();
+      cursorTime = position;
+      pausedAtCursor = previousState == PlaybackState.Paused;
+    }
+    TimelineChanged?.Invoke(this, EventArgs.Empty);
+  }
+
+  public void ResetToStart() {
+    ResetPlayback();
+    Viewport.SetStart(0);
+    TimelineChanged?.Invoke(this, EventArgs.Empty);
+  }
+
+  public void GoToEnd() {
+    ResetPlayback();
+    cursorTime = Viewport.Duration;
+    Viewport.SetStart(Viewport.MaximumStart);
+    TimelineChanged?.Invoke(this, EventArgs.Empty);
+  }
+
+  public void RefreshTimeline() {
+    double duration = Tracks.Count == 0 ? 0 : Tracks.Max(track => track.StartTime + track.Duration);
+    Viewport.Configure(duration, panContainer.ClientSize.Width);
+    if (Tracks.Count == 0) Viewport.Fit();
+    TimelineChanged?.Invoke(this, EventArgs.Empty);
+    RedrawAll();
+  }
+
+  public void SelectTrack(Track track) {
+    if (SelectedTrack != track) SelectedTrack?.ClearSelection();
+    SelectedTrack = track;
+    var profile = FrmMain.ActiveProfile;
+    foreach (Track item in Tracks) {
+      item.PanDrawSamples.BorderStyle = BorderStyle.None;
+      item.PanDrawSamples.BackColor = item == track ? profile.SelectedPanelColor : profile.MainPanelColor;
+    }
+    track.PanDrawSamples.BackColor = profile.SelectedPanelColor;
   }
 
   public void RedrawAll() {
-    Tracks.ForEach(track => track.PanDrawSamples.Invalidate());
+    foreach (Track track in Tracks) track.PanDrawSamples?.Invalidate();
   }
 
   public void ApplySettings() {
@@ -53,36 +128,90 @@ public class TrackManager {
   }
 
   public void SaveToFile(string filename) {
-    CombineTracks();
-    pseudoCombinedTrack.SaveToFile(filename);
+    // Saving must not replace an active playback session.
+    using Track combined = CombineTracks();
+    if (string.Equals(Path.GetExtension(filename), ".mp3", StringComparison.OrdinalIgnoreCase)) {
+      string directory = Path.GetDirectoryName(filename);
+      if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+      // Leave 1 dB of headroom before PCM conversion and lossy encoding.
+      const float peakCeiling = 0.8912509f;
+      var mix = combined.CreateSampleProvider();
+      Span<float> buffer = stackalloc float[2048];
+      float peak = 0;
+      int count;
+      while ((count = mix.Read(buffer)) > 0) {
+        foreach (float sample in buffer[..count]) peak = Math.Max(peak, Math.Abs(sample));
+      }
+
+      var pcm = new SampleToWaveProvider16(combined.CreateSampleProvider()) {
+        Volume = peak > peakCeiling ? peakCeiling / peak : 1f
+      };
+      MediaFoundationEncoder.EncodeToMp3(pcm, filename, 192_000);
+    }
+    else combined.SaveToFile(filename);
   }
 
-	public void PlayAll() {
-    CombineTracks();
-    pseudoCombinedTrack.Play();
+  public void PlayAll() {
+    if (State == PlaybackState.Paused && pseudoCombinedTrack != null && !playbackDirty) {
+      pseudoCombinedTrack.Play();
+      return;
+    }
+    double position = State == PlaybackState.Paused ? PlaybackTime : cursorTime;
+    if (position >= Viewport.Duration) {
+      position = 0;
+      Viewport.SetStart(0);
+    }
+    ResetPlayback();
+    StartPlayback(position);
+    TimelineChanged?.Invoke(this, EventArgs.Empty);
   }
-  private void CombineTracks() {
-    pseudoCombinedTrack?.Dispose();
-    List<float> combinedSamples = new();
-    foreach (Track track in Tracks) {
-      if (track.IsDisabled) {
-        continue;
+
+  private void StartPlayback(double position) {
+    if (Tracks.Count == 0) return;
+    pseudoCombinedTrack = CombineTracks();
+    if (position >= pseudoCombinedTrack.Duration) {
+      ResetPlayback();
+      return;
+    }
+    pseudoCombinedTrack.Play(position, createOutput);
+  }
+
+  private Track CombineTracks() {
+    const int rate = 44100, channels = 2;
+    // Muting changes audio, not project length; even an entirely muted mix can advance.
+    double duration = Tracks.Select(track => track.StartTime + track.Duration).DefaultIfEmpty(0).Max();
+    int frames = checked((int)Math.Ceiling(duration * rate));
+    float[] combined = new float[checked(frames * channels)];
+    float[] buffer = new float[8192];
+    foreach (Track track in Tracks.Where(track => !track.IsDisabled)) {
+      ISampleProvider source = track.CreateSampleProvider();
+      if (track.Channels == 1) source = new MonoToStereoSampleProvider(source);
+      else if (track.Channels != channels) {
+        // Match the stereo output to the first two channels of multichannel audio.
+        var stereo = new MultiplexingSampleProvider(new[] { source }, channels);
+        stereo.ConnectInputToOutput(0, 0);
+        stereo.ConnectInputToOutput(1, 1);
+        source = stereo;
       }
-      float[] trackSamples = (float[])track.GetAdjustedSamples().Clone();
-      for (int i = 0; i < trackSamples.Length; i++) {
-        if (combinedSamples.Count <= i) {
-          combinedSamples.Add(0);
-        }
-        combinedSamples[i] += trackSamples[i];
+      if (track.SampleRate != rate) source = new WdlResamplingSampleProvider(source, rate);
+      int position = checked((int)Math.Round(track.StartTime * rate) * channels);
+      while (position < combined.Length) {
+        int count = source.Read(buffer.AsSpan(0, Math.Min(buffer.Length, combined.Length - position)));
+        if (count == 0) break;
+        for (int i = 0; i < count; i++) combined[position + i] += buffer[i];
+        position += count;
       }
     }
-    pseudoCombinedTrack = new(combinedSamples.ToArray());
-    pseudoCombinedTrack.LinkPanels(null, panContainer);
+    return new Track(combined, rate, channels);
   }
-  public void PauseAll() {
-    pseudoCombinedTrack?.Pause();
-  }
-  public int GetPlayheadPos() {
-    return (pseudoCombinedTrack?.GetPlayheadPos() ?? 0) / DrawTimescale;
+
+  public void PauseAll() => pseudoCombinedTrack?.Pause();
+
+  public void Dispose() {
+    ResetPlayback();
+    foreach (Track track in Tracks) {
+      track.Changed -= TrackChanged;
+      track.Dispose();
+    }
   }
 }

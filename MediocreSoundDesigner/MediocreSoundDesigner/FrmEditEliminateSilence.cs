@@ -8,6 +8,7 @@ public partial class FrmEditEliminateSilence : FrmEditMaster {
   protected override void Init() {
     base.Init();
     cmbWhere.SelectedIndex = 0;
+    if (track.HasSelection) Text += " — selected region";
   }
 
   protected override void Apply() {
