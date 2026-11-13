@@ -199,7 +199,7 @@
 			btnLoad.Name = "btnLoad";
 			btnLoad.Size = new Size(60, 60);
 			btnLoad.TabIndex = 14;
-			buttonToolTips.SetToolTip(btnLoad, "Load");
+			buttonToolTips.SetToolTip(btnLoad, "Open");
 			btnLoad.UseVisualStyleBackColor = false;
 			btnLoad.Click += btnLoad_Click;
 			btnLoad.MouseDown += transportButton_MouseDown;
@@ -709,7 +709,7 @@
 			chkFollowPlayback.Name = "chkFollowPlayback";
 			chkFollowPlayback.Size = new Size(111, 19);
 			chkFollowPlayback.TabIndex = 20;
-			chkFollowPlayback.Text = "Follow playback";
+			chkFollowPlayback.Text = "Follow Playhead";
 			chkFollowPlayback.UseVisualStyleBackColor = true;
 			chkFollowPlayback.CheckedChanged += chkFollowPlayback_CheckedChanged;
 			// 

@@ -127,6 +127,56 @@ internal static class Program {
       }
     });
 
+    Check("MP3 export encodes the project mix", () => {
+      using var panel = new Panel { Width = 1000 };
+      using var manager = new TrackManager(panel);
+      float[] samples = Enumerable.Range(0, 22050)
+        .Select(i => (float)(0.3 * Math.Sin(2 * Math.PI * 440 * i / 22050))).ToArray();
+      var track = new Track(samples, 22050);
+      manager.AddTrack(track);
+      track.ShiftSampleOver(0.5);
+      string path = Path.Combine(Path.GetTempPath(), $"timeline-{Guid.NewGuid()}.MP3");
+      try {
+        manager.SaveToFile(path);
+        using var reader = new Mp3FileReader(path);
+        Require(reader.WaveFormat.SampleRate == 44100 && reader.WaveFormat.Channels == 2);
+        Near(reader.TotalTime.TotalSeconds, 1.5, 0.1);
+        using var decoded = new AudioFileReader(path);
+        var output = new float[(int)(decoded.Length / sizeof(float))];
+        int count = decoded.Read(output.AsSpan());
+        Require(output.Take(22050).All(value => Math.Abs(value) < 0.01f));
+        Require(output.Take(count).Skip(66150).Any(value => Math.Abs(value) > 0.1f));
+      }
+      finally {
+        File.Delete(path);
+      }
+    });
+
+    Check("MP3 export preserves the shape of an over-full-scale mix", () => {
+      using var panel = new Panel();
+      using var manager = new TrackManager(panel);
+      float[] samples = Enumerable.Range(0, 44100)
+        .Select(i => (float)(0.9 * Math.Sin(2 * Math.PI * 440 * i / 44100))).ToArray();
+      manager.AddTrack(new Track(samples));
+      manager.AddTrack(new Track(samples));
+      string path = Path.Combine(Path.GetTempPath(), $"timeline-{Guid.NewGuid()}.mp3");
+      try {
+        manager.SaveToFile(path);
+        using var decoded = new AudioFileReader(path);
+        var output = new float[(int)(decoded.Length / sizeof(float))];
+        int count = decoded.Read(output.AsSpan());
+        Require(count >= 66150);
+        float[] middle = output[22050..66150];
+        double peak = middle.Max(value => Math.Abs(value));
+        double rms = Math.Sqrt(middle.Average(value => (double)value * value));
+        Require(peak > 0.75 && peak < 0.98, $"Expected MP3 headroom, got peak {peak}.");
+        Near(rms / peak, 1 / Math.Sqrt(2), 0.05);
+      }
+      finally {
+        File.Delete(path);
+      }
+    });
+
     Check("muting rebuilds active audio and paused edits cannot resume an old mix", () => {
       using var panel = new Panel { Width = 1000 };
       var players = new List<TestWavePlayer>();

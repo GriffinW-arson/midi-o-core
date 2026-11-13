@@ -118,7 +118,25 @@ public class TrackManager : IDisposable {
   public void SaveToFile(string filename) {
     // Saving must not replace an active playback session.
     using Track combined = CombineTracks();
-    combined.SaveToFile(filename);
+    if (string.Equals(Path.GetExtension(filename), ".mp3", StringComparison.OrdinalIgnoreCase)) {
+      string directory = Path.GetDirectoryName(filename);
+      if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+      // Leave 1 dB of headroom before PCM conversion and lossy encoding.
+      const float peakCeiling = 0.8912509f;
+      var mix = combined.CreateSampleProvider();
+      Span<float> buffer = stackalloc float[2048];
+      float peak = 0;
+      int count;
+      while ((count = mix.Read(buffer)) > 0) {
+        foreach (float sample in buffer[..count]) peak = Math.Max(peak, Math.Abs(sample));
+      }
+
+      var pcm = new SampleToWaveProvider16(combined.CreateSampleProvider()) {
+        Volume = peak > peakCeiling ? peakCeiling / peak : 1f
+      };
+      MediaFoundationEncoder.EncodeToMp3(pcm, filename, 192_000);
+    }
+    else combined.SaveToFile(filename);
   }
 
   public void PlayAll() {
