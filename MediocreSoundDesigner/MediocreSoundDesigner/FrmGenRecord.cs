@@ -13,6 +13,7 @@ public partial class FrmGenRecord : FrmEditMaster {
   }
 
   protected override void Init() {
+    base.Init();
     recordedSamples = new();
     isRecording = false;
     btnRecord.BackgroundImage = Resources.record;

@@ -115,6 +115,18 @@ public class TrackManager : IDisposable {
     foreach (Track track in Tracks) track.PanDrawSamples?.Invalidate();
   }
 
+  public void ApplySettings() {
+    foreach (Track track in Tracks) {
+      if (SelectedTrack == track) {
+        track.PanDrawSamples.BackColor = Settings.Color.TrackBg_Selected;
+      }
+      else {
+        track.PanDrawSamples.BackColor = Settings.Color.TrackBg_Unselected;
+      }
+    }
+    RedrawAll();
+  }
+
   public void SaveToFile(string filename) {
     // Saving must not replace an active playback session.
     using Track combined = CombineTracks();

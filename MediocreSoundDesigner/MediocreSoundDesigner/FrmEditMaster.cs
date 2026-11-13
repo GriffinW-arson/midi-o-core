@@ -16,6 +16,11 @@ public partial class FrmEditMaster : Form {
   }
 
   // gui
+  protected void ApplySettings() {
+    BackColor = Settings.Color.WinBg;
+    ForeColor = Settings.Color.WinFg;
+  }
+
   public void btnCancel_Click(object sender, EventArgs e) {
     Cancel();
     DialogResult = DialogResult.Cancel;
@@ -24,13 +29,13 @@ public partial class FrmEditMaster : Form {
 
   public void btnApply_Click(object sender, EventArgs e) {
     Apply();
-    track.PanDrawSamples?.Invalidate();
+    track?.PanDrawSamples?.Invalidate();
     DialogResult = DialogResult.OK;
     Close();
   }
 
   // override in subclass if needed
-  protected virtual void Init() { }
+  protected virtual void Init() { ApplySettings(); }
   protected virtual void Apply() { }
   protected virtual void Cancel() { }
 }
