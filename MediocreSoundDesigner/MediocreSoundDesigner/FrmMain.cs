@@ -84,6 +84,25 @@ public partial class FrmMain : Form, IMessageFilter
 	private static readonly Image SavePressedIcon = Resources.transportSave2;
 	private static readonly Image LoadIcon = Resources.transportLoad;
 	private static readonly Image LoadPressedIcon = Resources.transportLoad2;
+	private static readonly Image CutIcon = Resources.editCut;
+	private static readonly Image CutPressedIcon = Resources.editCut2;
+	private static readonly Image CopyIcon = Resources.editCopy;
+	private static readonly Image CopyPressedIcon = Resources.editCopy2;
+	private static readonly Image PasteIcon = Resources.editPaste;
+	private static readonly Image PastePressedIcon = Resources.editPaste2;
+	private static readonly Image PasteNewTrackIcon = Resources.editPasteNewTrack;
+	private static readonly Image PasteNewTrackPressedIcon = Resources.editPasteNewTrack2;
+	private static readonly Image DeleteIcon = Resources.editDelete;
+	private static readonly Image DeletePressedIcon = Resources.editDelete2;
+	private static readonly Image ResetDisabledIcon = Resources.transportReset3;
+	private static readonly Image PlayDisabledIcon = Resources.transportPlay3;
+	private static readonly Image EndDisabledIcon = Resources.transportEnd3;
+	private static readonly Image SaveDisabledIcon = Resources.transportSave3;
+	private static readonly Image CutDisabledIcon = Resources.editCut3;
+	private static readonly Image CopyDisabledIcon = Resources.editCopy3;
+	private static readonly Image PasteDisabledIcon = Resources.editPaste3;
+	private static readonly Image PasteNewTrackDisabledIcon = Resources.editPasteNewTrack3;
+	private static readonly Image DeleteDisabledIcon = Resources.editDelete3;
 
 	// ctor
 	public FrmMain()
@@ -191,6 +210,7 @@ public partial class FrmMain : Form, IMessageFilter
 			{
 				EndRegionDrag();
 				trackManager.SelectedTrack.ClearSelection();
+				UpdateTransportButtons();
 				return true;
 			}
 			if (keyData == Keys.Left)
@@ -267,16 +287,43 @@ public partial class FrmMain : Form, IMessageFilter
 
 	private void UpdateTransportButtons()
 	{
-		bool hasAudio = trackManager.Tracks.Count > 0 && trackManager.Viewport.Duration > 0;
+		bool hasTracks = trackManager.Tracks.Count > 0;
+		Track selectedTrack = trackManager.SelectedTrack;
+		bool hasAudio = hasTracks && trackManager.Viewport.Duration > 0;
+		bool hasSelection = selectedTrack?.HasSelection == true;
+		bool hasClipboard = audioClipboard.HasValue;
+
 		btnReset.Enabled = btnPlay.Enabled = btnEnd.Enabled = hasAudio;
-		btnReset.BackgroundImage = pressedTransportButton == btnReset ? ResetPressedIcon : ResetIcon;
-		btnEnd.BackgroundImage = pressedTransportButton == btnEnd ? EndPressedIcon : EndIcon;
-		btnSave.BackgroundImage = pressedTransportButton == btnSave ? SavePressedIcon : SaveIcon;
+		btnSave.Enabled = menuFileSave.Enabled = hasTracks;
+		btnDelete.Enabled = menuEditDelete.Enabled = selectedTrack != null;
+		btnCut.Enabled = btnCopy.Enabled = menuEditCut.Enabled = menuEditCopy.Enabled = hasSelection;
+		btnPaste.Enabled = menuEditPaste.Enabled = hasClipboard && selectedTrack != null;
+		btnPasteNewTrack.Enabled = menuEditPasteNewTrack.Enabled = hasClipboard;
+		menuEditFlip.Enabled = menuEditReverse.Enabled = menuEditVolume.Enabled =
+			menuEditEliminateSilence.Enabled = normalizeToolStripMenuItem.Enabled =
+			phaserToolStripMenuItem.Enabled = chorusToolStripMenuItem.Enabled = selectedTrack != null;
+
+		UpdateButtonIcon(btnReset, ResetIcon, ResetPressedIcon, ResetDisabledIcon);
+		UpdateButtonIcon(btnEnd, EndIcon, EndPressedIcon, EndDisabledIcon);
+		UpdateButtonIcon(btnSave, SaveIcon, SavePressedIcon, SaveDisabledIcon);
 		btnLoad.BackgroundImage = pressedTransportButton == btnLoad ? LoadPressedIcon : LoadIcon;
+		UpdateButtonIcon(btnCut, CutIcon, CutPressedIcon, CutDisabledIcon);
+		UpdateButtonIcon(btnCopy, CopyIcon, CopyPressedIcon, CopyDisabledIcon);
+		UpdateButtonIcon(btnPaste, PasteIcon, PastePressedIcon, PasteDisabledIcon);
+		UpdateButtonIcon(btnPasteNewTrack, PasteNewTrackIcon, PasteNewTrackPressedIcon, PasteNewTrackDisabledIcon);
+		UpdateButtonIcon(btnDelete, DeleteIcon, DeletePressedIcon, DeleteDisabledIcon);
 		bool playing = trackManager.State == NAudio.Wave.PlaybackState.Playing;
-		btnPlay.BackgroundImage = playing ? (pressedTransportButton == btnPlay ? PausePressedIcon : PauseIcon) :
-			pressedTransportButton == btnPlay ? PlayPressedIcon : PlayIcon;
+		UpdateButtonIcon(btnPlay, playing ? PauseIcon : PlayIcon,
+			playing ? PausePressedIcon : PlayPressedIcon, PlayDisabledIcon);
 		btnPlay.AccessibleName = playing ? "Pause" : "Play";
+		if (buttonToolTips.GetToolTip(btnPlay) != btnPlay.AccessibleName)
+			buttonToolTips.SetToolTip(btnPlay, btnPlay.AccessibleName);
+
+		void UpdateButtonIcon(Button button, Image icon, Image pressedIcon, Image disabledIcon)
+		{
+			button.BackgroundImage = !button.Enabled ? disabledIcon :
+				pressedTransportButton == button ? pressedIcon : icon;
+		}
 	}
 
 	private void menuFileOpen_Click(object sender, EventArgs e)
@@ -304,34 +351,58 @@ public partial class FrmMain : Form, IMessageFilter
 		menuFileOpen_Click(sender, e);
 	}
 
-	// Fix this to save to the same file every time
+	private void menuFileExit_Click(object sender, EventArgs e) => Close();
 
-	private void menuFileSave_Click(object sender, EventArgs e)
+	private void FrmMain_FormClosing(object sender, FormClosingEventArgs e)
+	{
+		if (e.Cancel || !menuFileSave.Enabled) return;
+		var choice = MessageBox.Show(this, "Would you like to save before closing?", "Exit",
+			MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+		e.Cancel = choice != DialogResult.No && (choice != DialogResult.Yes || !SaveAudio());
+	}
+
+	private void menuFileSave_Click(object sender, EventArgs e) => SaveAudio();
+
+	private bool SaveAudio()
 	{
 		sfdSaveFile.DefaultExt = "wav";
 		sfdSaveFile.Filter = "WAV files (*.wav)|*.wav|MP3 files (*.mp3)|*.mp3|All files (*.*)|*.*";
 		sfdSaveFile.FileName = "NewAudio";
-		if (sfdSaveFile.ShowDialog() == DialogResult.OK)
+		if (sfdSaveFile.ShowDialog(this) != DialogResult.OK) return false;
+
+		try
 		{
-			try
-			{
-				string filePath = sfdSaveFile.FileName;
-				trackManager.SaveToFile(filePath);
-				MessageBox.Show($"Saved to {filePath}", "Save Succeed", MessageBoxButtons.OK, MessageBoxIcon.Information);
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"There was an error during the save!\n{ex}", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-			}
-			
+			string filePath = sfdSaveFile.FileName;
+			trackManager.SaveToFile(filePath);
+			MessageBox.Show(this, $"Saved to {filePath}", "Save Succeed", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			return true;
 		}
-
-
+		catch (Exception ex)
+		{
+			MessageBox.Show(this, $"There was an error during the save!\n{ex}", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+			return false;
+		}
 	}
 
 	private void menuEditFlip_Click(object sender, EventArgs e)
 	{
 		trackManager.SelectedTrack?.Flip();
+	}
+
+	private void editButton_Click(object sender, EventArgs e)
+	{
+		var button = (Button)sender;
+		FlashTransportButton(button);
+		if (button == btnDelete)
+		{
+			menuEditDelete.PerformClick();
+			return;
+		}
+
+		ToolStripMenuItem command = button == btnCut ? menuEditCut :
+			button == btnCopy ? menuEditCopy :
+			button == btnPaste ? menuEditPaste : menuEditPasteNewTrack;
+		command.PerformClick();
 	}
 
 	private void menuEditClipboard_Click(object sender, EventArgs e)
@@ -372,6 +443,7 @@ public partial class FrmMain : Form, IMessageFilter
 			EndRegionDrag();
 			track.DeleteSelection();
 		}
+		UpdateTransportButtons();
 	}
 
 	private void menuEditDelete_Click(object sender, EventArgs e)
@@ -536,6 +608,7 @@ public partial class FrmMain : Form, IMessageFilter
 		EndRegionDrag();
 		trackManager.SelectTrack(track);
 		track.ClearSelection();
+		UpdateTransportButtons();
 		regionDragTrack = track;
 		regionAnchorX = x;
 		regionAnchorTime = trackManager.Viewport.TimeAt(x);
@@ -563,6 +636,7 @@ public partial class FrmMain : Form, IMessageFilter
 		if (!regionDragMoved) return;
 		x = Math.Clamp(x, 0, regionDragTrack.PanDrawSamples.ClientSize.Width);
 		regionDragTrack.SetSelection(regionAnchorTime, trackManager.Viewport.TimeAt(x));
+		UpdateTransportButtons();
 	}
 
 	private void EndRegionDrag()
@@ -674,7 +748,6 @@ public partial class FrmMain : Form, IMessageFilter
 			Math.Clamp((int)Math.Round(range * viewport.Start / viewport.MaximumStart), 0, range);
 		timelineScroll.Enabled = viewport.MaximumStart > 0;
 		zoomToolStripMenuItem.Enabled = viewport.Duration > 0;
-		menuEditDelete.Enabled = trackManager.SelectedTrack != null;
 		// Allow for rounding the continuous zoom scale to the slider's integer steps.
 		double tolerance = 0.5 / (trkDrawTimescale.Maximum - trkDrawTimescale.Minimum) + 1e-9;
 		fitToolStripMenuItem.Checked = viewport.IsFit;
@@ -682,7 +755,8 @@ public partial class FrmMain : Form, IMessageFilter
 		toolStripMenuItem3.Checked = Math.Abs(viewport.ZoomFraction - 0.25) <= tolerance;
 		toolStripMenuItem4.Checked = Math.Abs(viewport.ZoomFraction - 0.1) <= tolerance;
 		toolStripMenuItem5.Checked = Math.Abs(viewport.ZoomFraction - 0.01) <= tolerance;
-		lblDebug.Text = $"{viewport.Start:0.00}s – {viewport.TimeAt(viewport.Width):0.00}s  /  {viewport.Duration:0.00}s";
+		lblTimelineLeft.Text = $"{viewport.Start:0.00}s";
+		lblTimelineRight.Text = $"{viewport.TimeAt(viewport.Width):0.00}s";
 		trackManager.RedrawAll();
 		UpdateTransportButtons();
 		UpdatePlayhead();

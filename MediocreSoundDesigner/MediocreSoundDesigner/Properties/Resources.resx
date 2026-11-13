@@ -166,4 +166,61 @@
   <data name="transportLoad2" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\plop\load2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="editCut" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\plop\cut.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="editCut2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\plop\cut2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="editCopy" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\plop\copy.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="editCopy2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\plop\copy2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="editPaste" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\plop\paste.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="editPaste2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\plop\paste2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="editPasteNewTrack" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\plop\pasteNew.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="editPasteNewTrack2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\plop\pasteNew2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="editDelete" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\plop\remove.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="editDelete2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\plop\remove2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="transportReset3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\plop\reset3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="transportPlay3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\plop\play3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="transportEnd3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\plop\end3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="transportSave3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\plop\save3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="editCut3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\plop\cut3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="editCopy3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\plop\copy3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="editPaste3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\plop\paste3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="editPasteNewTrack3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\plop\pasteNew3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="editDelete3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\plop\remove3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

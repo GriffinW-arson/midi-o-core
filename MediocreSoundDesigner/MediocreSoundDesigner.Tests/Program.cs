@@ -419,6 +419,13 @@ internal static class Program {
 
     Check("clipboard menu copies, cuts, and inserts complete frames", () => {
       using var form = new FrmMain();
+      var fileMenu = (ToolStripMenuItem)form.MainMenuStrip.Items["menuFile"];
+      var save = fileMenu.DropDownItems["menuFileSave"];
+      var saveButton = form.Controls["btnSave"];
+      Image disabledSaveIcon = saveButton.BackgroundImage;
+      Require(!save.Enabled && !saveButton.Enabled && disabledSaveIcon != null);
+      Require(!form.Controls["btnPlay"].Enabled && !form.Controls["btnReset"].Enabled && !form.Controls["btnEnd"].Enabled);
+      Require(fileMenu.DropDownItems["menuFileOpen"].Enabled && form.Controls["btnLoad"].Enabled);
       var field = typeof(FrmMain).GetField("trackManager", BindingFlags.Instance | BindingFlags.NonPublic);
       using var manager = (TrackManager)field.GetValue(form);
       var createPanel = typeof(FrmMain).GetMethod("CreateTrackPanel", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -439,6 +446,20 @@ internal static class Program {
       Require(copy.Text == "Copy" && copy.ShortcutKeys == (Keys.Control | Keys.C));
       Require(paste.Text == "Paste" && paste.ShortcutKeys == (Keys.Control | Keys.V));
       Require(pasteNewTrack.Text == "Paste to New Track" && editMenu.DropDownItems[4].Text == "Delete");
+      var cutButton = (Button)form.Controls["btnCut"];
+      var copyButton = (Button)form.Controls["btnCopy"];
+      var pasteButton = (Button)form.Controls["btnPaste"];
+      var pasteNewTrackButton = (Button)form.Controls["btnPasteNewTrack"];
+      var delete = editMenu.DropDownItems["menuEditDelete"];
+      var phaser = editMenu.DropDownItems["phaserToolStripMenuItem"];
+      Image disabledCopyIcon = copyButton.BackgroundImage;
+      Require(save.Enabled && saveButton.Enabled && saveButton.BackgroundImage != disabledSaveIcon);
+      Require(delete.Enabled && form.Controls["btnDelete"].Enabled && phaser.Enabled);
+      Require(!cut.Enabled && !copy.Enabled && !cutButton.Enabled && !copyButton.Enabled);
+      Require(!paste.Enabled && !pasteNewTrack.Enabled && !pasteButton.Enabled && !pasteNewTrackButton.Enabled);
+      // Raise Click directly because Button.PerformClick requires a visible form.
+      var clickButton = typeof(Button).GetMethod("OnClick", BindingFlags.Instance | BindingFlags.NonPublic);
+      var updateButtons = typeof(FrmMain).GetMethod("UpdateTransportButtons", BindingFlags.Instance | BindingFlags.NonPublic);
 
       pasteNewTrack.PerformClick();
       Require(manager.Tracks.Count == 2);
@@ -446,20 +467,31 @@ internal static class Program {
       Require(destination.CloneSamples().SequenceEqual(new float[] { 4, 40, 5, 50, 6, 60 }));
       manager.SelectTrack(source);
       source.SetSelection(0.1, 0.2);
-      copy.PerformClick();
+      updateButtons.Invoke(form, null);
+      Image copyIcon = copyButton.BackgroundImage;
+      Require(cut.Enabled && copy.Enabled && cutButton.Enabled && copyButton.Enabled && copyIcon != disabledCopyIcon);
+      clickButton.Invoke(copyButton, new object[] { EventArgs.Empty });
+      Require(copyButton.BackgroundImage != copyIcon);
+      typeof(FrmMain).GetMethod("transportFeedback_Tick", BindingFlags.Instance | BindingFlags.NonPublic)
+        .Invoke(form, new object[] { form, EventArgs.Empty });
+      Require(copyButton.BackgroundImage == copyIcon);
+      Require(paste.Enabled && pasteNewTrack.Enabled && pasteButton.Enabled && pasteNewTrackButton.Enabled);
       Require(source.HasSelection && source.CloneSamples().SequenceEqual(new float[] { 1, 10, 2, 20, 3, 30 }));
 
       manager.SelectTrack(destination);
       manager.Seek(0.4);
       destination.SetSelection(0.5, 0.6);
-      paste.PerformClick();
+      clickButton.Invoke(pasteButton, new object[] { EventArgs.Empty });
       Require(destination.CloneSamples().SequenceEqual(new float[] { 4, 40, 2, 20, 5, 50, 6, 60 }));
       Require(!destination.HasSelection);
 
       manager.SelectTrack(source);
       source.SetSelection(0.2, 0.3);
-      cut.PerformClick();
+      updateButtons.Invoke(form, null);
+      clickButton.Invoke(cutButton, new object[] { EventArgs.Empty });
       Require(!source.HasSelection && source.CloneSamples().SequenceEqual(new float[] { 1, 10, 2, 20 }));
+      Require(!cut.Enabled && !copy.Enabled && !cutButton.Enabled && !copyButton.Enabled);
+      Require(copyButton.BackgroundImage == disabledCopyIcon);
       copy.PerformClick(); // An empty selection leaves the clipboard intact.
       manager.SelectTrack(destination);
       manager.Seek(0.5);
@@ -468,7 +500,7 @@ internal static class Program {
       Near(destination.StartTime, 0.4);
       Near(manager.Viewport.Duration, 0.9);
 
-      pasteNewTrack.PerformClick();
+      clickButton.Invoke(pasteNewTrackButton, new object[] { EventArgs.Empty });
       Require(manager.Tracks.Count == 3);
       Track pasted = manager.Tracks[^1];
       Require(manager.SelectedTrack == pasted && pasted.PanDrawSamples.Height > 0);
@@ -483,6 +515,9 @@ internal static class Program {
         track.Dispose();
       }
       Require(manager.SelectedTrack is null);
+      Require(!save.Enabled && !saveButton.Enabled && saveButton.BackgroundImage == disabledSaveIcon);
+      Require(!delete.Enabled && !form.Controls["btnDelete"].Enabled && !phaser.Enabled);
+      Require(!paste.Enabled && !pasteButton.Enabled && pasteNewTrack.Enabled && pasteNewTrackButton.Enabled);
       pasteNewTrack.PerformClick();
       Require(manager.Tracks.Single().CloneSamples().SequenceEqual(new float[] { 3, 30 }));
     });
@@ -562,6 +597,14 @@ internal static class Program {
       Near(manager.Viewport.Start, manager.Viewport.MaximumStart);
       Require(manager.Viewport.Start > 0);
       Require(scroll.Value == lastScrollPosition && scroll.Enabled);
+      var leftTime = (Label)form.Controls["lblTimelineLeft"];
+      var rightTime = (Label)form.Controls["lblTimelineRight"];
+      var zoomBar = (TrackBar)form.Controls["trkDrawTimescale"];
+      Require(leftTime.Text == $"{manager.Viewport.Start:0.00}s");
+      Require(rightTime.Text == $"{manager.Viewport.TimeAt(manager.Viewport.Width):0.00}s");
+      Require(leftTime.Left == viewer.Left && rightTime.Right == viewer.Right);
+      Require(zoomBar.Bottom <= leftTime.Top && leftTime.Top == rightTime.Top);
+      Require(leftTime.Bottom <= viewer.Top && rightTime.Bottom <= viewer.Top);
       var rightClick = new MouseEventArgs(MouseButtons.Right, 1, 200, 50, 0);
       double seekTime = manager.Viewport.TimeAt(200);
       typeof(Control).GetMethod("OnMouseDown", BindingFlags.Instance | BindingFlags.NonPublic)
@@ -624,6 +667,12 @@ internal static class Program {
       using (var graphics = Graphics.FromImage(preview)) graphics.Clear(Color.Black);
       RenderControls(form, preview, Point.Empty);
       preview.Save(Path.Combine(AppContext.BaseDirectory, "timeline-preview.png"));
+      form.Size = form.MinimumSize;
+      var deleteButton = (Button)form.Controls["btnDelete"];
+      var followPlayback = (CheckBox)form.Controls["chkFollowPlayback"];
+      Require(deleteButton.Right < reset.Left);
+      Require(end.Right < form.Controls["btnSave"].Left);
+      Require(followPlayback.Top > deleteButton.Bottom && followPlayback.Bottom <= form.ClientSize.Height);
     });
 
     Console.WriteLine($"Passed {passed} regression checks.");

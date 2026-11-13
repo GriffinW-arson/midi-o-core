@@ -171,5 +171,119 @@ namespace MediocreSoundDesigner.Properties {
             }
         }
 
+        internal static System.Drawing.Bitmap editCut {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("editCut", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap editCut2 {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("editCut2", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap editCopy {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("editCopy", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap editCopy2 {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("editCopy2", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap editPaste {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("editPaste", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap editPaste2 {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("editPaste2", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap editPasteNewTrack {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("editPasteNewTrack", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap editPasteNewTrack2 {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("editPasteNewTrack2", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap editDelete {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("editDelete", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap editDelete2 {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("editDelete2", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap transportReset3 {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("transportReset3", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap transportPlay3 {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("transportPlay3", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap transportEnd3 {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("transportEnd3", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap transportSave3 {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("transportSave3", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap editCut3 {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("editCut3", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap editCopy3 {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("editCopy3", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap editPaste3 {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("editPaste3", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap editPasteNewTrack3 {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("editPasteNewTrack3", resourceCulture);
+            }
+        }
+
+        internal static System.Drawing.Bitmap editDelete3 {
+            get {
+                return (System.Drawing.Bitmap)ResourceManager.GetObject("editDelete3", resourceCulture);
+            }
+        }
+
     }
 }

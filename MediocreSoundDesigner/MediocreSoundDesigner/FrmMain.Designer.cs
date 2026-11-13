@@ -31,16 +31,18 @@
 		private void InitializeComponent()
 		{
 			components = new System.ComponentModel.Container();
+			buttonToolTips = new ToolTip(components);
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMain));
 			panTracks = new Panel();
 			lblPlayhead = new Label();
-			lblDebug = new Label();
+			lblTimelineLeft = new Label();
+			lblTimelineRight = new Label();
 			ofdLoadFile = new OpenFileDialog();
 			menu = new MenuStrip();
 			menuFile = new ToolStripMenuItem();
 			menuFileOpen = new ToolStripMenuItem();
 			menuFileSave = new ToolStripMenuItem();
-			exportToToolStripMenuItem = new ToolStripMenuItem();
+			menuFileExit = new ToolStripMenuItem();
 			menuEdit = new ToolStripMenuItem();
 			menuEditCut = new ToolStripMenuItem();
 			menuEditCopy = new ToolStripMenuItem();
@@ -83,6 +85,11 @@
 			btnEnd = new Button();
 			btnSave = new Button();
 			btnLoad = new Button();
+			btnCut = new Button();
+			btnCopy = new Button();
+			btnPaste = new Button();
+			btnPasteNewTrack = new Button();
+			btnDelete = new Button();
 			transportFeedback = new System.Windows.Forms.Timer(components);
 			tmrUpdate = new System.Windows.Forms.Timer(components);
 			sfdSaveFile = new SaveFileDialog();
@@ -119,16 +126,30 @@
 			lblPlayhead.TabIndex = 9;
 			lblPlayhead.MouseDown += waveform_MouseDown;
 			// 
-			// lblDebug
+			// lblTimelineLeft
 			// 
-			lblDebug.Dock = DockStyle.Bottom;
-			lblDebug.Font = new Font("Segoe UI", 20.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
-			lblDebug.ForeColor = Color.FromArgb(255, 255, 192);
-			lblDebug.Location = new Point(0, 746);
-			lblDebug.Name = "lblDebug";
-			lblDebug.Size = new Size(1604, 37);
-			lblDebug.TabIndex = 1;
-			lblDebug.Text = "0.00s – 0.00s  /  0.00s";
+			lblTimelineLeft.AccessibleName = "Time at left edge";
+			lblTimelineLeft.Font = new Font("Segoe UI", 14F, FontStyle.Bold, GraphicsUnit.Point, 0);
+			lblTimelineLeft.ForeColor = Color.White;
+			lblTimelineLeft.Location = new Point(15, 76);
+			lblTimelineLeft.Name = "lblTimelineLeft";
+			lblTimelineLeft.Size = new Size(300, 26);
+			lblTimelineLeft.TabIndex = 15;
+			lblTimelineLeft.Text = "0.00s";
+			lblTimelineLeft.TextAlign = ContentAlignment.MiddleLeft;
+			// 
+			// lblTimelineRight
+			// 
+			lblTimelineRight.AccessibleName = "Time at right edge";
+			lblTimelineRight.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+			lblTimelineRight.Font = new Font("Segoe UI", 14F, FontStyle.Bold, GraphicsUnit.Point, 0);
+			lblTimelineRight.ForeColor = Color.White;
+			lblTimelineRight.Location = new Point(1289, 76);
+			lblTimelineRight.Name = "lblTimelineRight";
+			lblTimelineRight.Size = new Size(300, 26);
+			lblTimelineRight.TabIndex = 16;
+			lblTimelineRight.Text = "0.00s";
+			lblTimelineRight.TextAlign = ContentAlignment.MiddleRight;
 			// 
 			// ofdLoadFile
 			// 
@@ -145,7 +166,7 @@
 			// 
 			// menuFile
 			// 
-			menuFile.DropDownItems.AddRange(new ToolStripItem[] { menuFileOpen, menuFileSave, exportToToolStripMenuItem });
+			menuFile.DropDownItems.AddRange(new ToolStripItem[] { menuFileOpen, menuFileSave, menuFileExit });
 			menuFile.Name = "menuFile";
 			menuFile.Size = new Size(37, 20);
 			menuFile.Text = "&File";
@@ -164,11 +185,12 @@
 			menuFileSave.Text = "Save...";
 			menuFileSave.Click += menuFileSave_Click;
 			// 
-			// exportToToolStripMenuItem
+			// menuFileExit
 			// 
-			exportToToolStripMenuItem.Name = "exportToToolStripMenuItem";
-			exportToToolStripMenuItem.Size = new Size(132, 22);
-			exportToToolStripMenuItem.Text = "Export To...";
+			menuFileExit.Name = "menuFileExit";
+			menuFileExit.Size = new Size(132, 22);
+			menuFileExit.Text = "Exit";
+			menuFileExit.Click += menuFileExit_Click;
 			// 
 			// menuEdit
 			// 
@@ -176,31 +198,35 @@
 			menuEdit.Name = "menuEdit";
 			menuEdit.Size = new Size(39, 20);
 			menuEdit.Text = "E&dit";
-			//
+			// 
 			// menuEditCut
-			//
+			// 
 			menuEditCut.Name = "menuEditCut";
 			menuEditCut.ShortcutKeys = Keys.Control | Keys.X;
+			menuEditCut.Size = new Size(174, 22);
 			menuEditCut.Text = "Cut";
 			menuEditCut.Click += menuEditClipboard_Click;
-			//
+			// 
 			// menuEditCopy
-			//
+			// 
 			menuEditCopy.Name = "menuEditCopy";
 			menuEditCopy.ShortcutKeys = Keys.Control | Keys.C;
+			menuEditCopy.Size = new Size(174, 22);
 			menuEditCopy.Text = "Copy";
 			menuEditCopy.Click += menuEditClipboard_Click;
-			//
+			// 
 			// menuEditPaste
-			//
+			// 
 			menuEditPaste.Name = "menuEditPaste";
 			menuEditPaste.ShortcutKeys = Keys.Control | Keys.V;
+			menuEditPaste.Size = new Size(174, 22);
 			menuEditPaste.Text = "Paste";
 			menuEditPaste.Click += menuEditClipboard_Click;
-			//
+			// 
 			// menuEditPasteNewTrack
-			//
+			// 
 			menuEditPasteNewTrack.Name = "menuEditPasteNewTrack";
+			menuEditPasteNewTrack.Size = new Size(174, 22);
 			menuEditPasteNewTrack.Text = "Paste to New Track";
 			menuEditPasteNewTrack.Click += menuEditClipboard_Click;
 			// 
@@ -209,66 +235,66 @@
 			menuEditDelete.Enabled = false;
 			menuEditDelete.Name = "menuEditDelete";
 			menuEditDelete.ShortcutKeys = Keys.Delete;
-			menuEditDelete.Size = new Size(180, 22);
+			menuEditDelete.Size = new Size(174, 22);
 			menuEditDelete.Text = "Delete";
 			menuEditDelete.Click += menuEditDelete_Click;
 			// 
 			// toolStripSeparator3
 			// 
 			toolStripSeparator3.Name = "toolStripSeparator3";
-			toolStripSeparator3.Size = new Size(177, 6);
+			toolStripSeparator3.Size = new Size(171, 6);
 			// 
 			// menuEditFlip
 			// 
 			menuEditFlip.Name = "menuEditFlip";
-			menuEditFlip.Size = new Size(180, 22);
+			menuEditFlip.Size = new Size(174, 22);
 			menuEditFlip.Text = "Flip";
 			menuEditFlip.Click += menuEditFlip_Click;
 			// 
 			// menuEditReverse
 			// 
 			menuEditReverse.Name = "menuEditReverse";
-			menuEditReverse.Size = new Size(180, 22);
+			menuEditReverse.Size = new Size(174, 22);
 			menuEditReverse.Text = "Reverse";
 			menuEditReverse.Click += menuEditReverse_Click;
 			// 
 			// menuEditVolume
 			// 
 			menuEditVolume.Name = "menuEditVolume";
-			menuEditVolume.Size = new Size(180, 22);
+			menuEditVolume.Size = new Size(174, 22);
 			menuEditVolume.Text = "Alter Volume...";
 			menuEditVolume.Click += menuEditVolume_Click;
 			// 
 			// menuEditEliminateSilence
 			// 
 			menuEditEliminateSilence.Name = "menuEditEliminateSilence";
-			menuEditEliminateSilence.Size = new Size(180, 22);
+			menuEditEliminateSilence.Size = new Size(174, 22);
 			menuEditEliminateSilence.Text = "Eliminate Silence...";
 			menuEditEliminateSilence.Click += menuEditEliminateSilence_Click;
 			// 
 			// toolStripSeparator4
 			// 
 			toolStripSeparator4.Name = "toolStripSeparator4";
-			toolStripSeparator4.Size = new Size(177, 6);
+			toolStripSeparator4.Size = new Size(171, 6);
 			// 
 			// normalizeToolStripMenuItem
 			// 
 			normalizeToolStripMenuItem.Name = "normalizeToolStripMenuItem";
-			normalizeToolStripMenuItem.Size = new Size(180, 22);
+			normalizeToolStripMenuItem.Size = new Size(174, 22);
 			normalizeToolStripMenuItem.Text = "Normalize";
 			normalizeToolStripMenuItem.Click += normalizeToolStripMenuItem_Click;
 			// 
 			// phaserToolStripMenuItem
 			// 
 			phaserToolStripMenuItem.Name = "phaserToolStripMenuItem";
-			phaserToolStripMenuItem.Size = new Size(180, 22);
+			phaserToolStripMenuItem.Size = new Size(174, 22);
 			phaserToolStripMenuItem.Text = "Phaser...";
 			phaserToolStripMenuItem.Click += phaserToolStripMenuItem_Click;
 			// 
 			// chorusToolStripMenuItem
 			// 
 			chorusToolStripMenuItem.Name = "chorusToolStripMenuItem";
-			chorusToolStripMenuItem.Size = new Size(180, 22);
+			chorusToolStripMenuItem.Size = new Size(174, 22);
 			chorusToolStripMenuItem.Text = "Chorus...";
 			chorusToolStripMenuItem.Click += chorusToolStripMenuItem_Click;
 			// 
@@ -519,6 +545,101 @@
 			btnLoad.UseVisualStyleBackColor = false;
 			btnLoad.Click += btnLoad_Click;
 			btnLoad.MouseDown += transportButton_MouseDown;
+			//
+			// btnCut
+			//
+			btnCut.AccessibleName = "Cut";
+			btnCut.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+			btnCut.BackColor = Color.Transparent;
+			btnCut.BackgroundImage = Properties.Resources.editCut;
+			btnCut.BackgroundImageLayout = ImageLayout.Zoom;
+			btnCut.FlatAppearance.BorderSize = 0;
+			btnCut.FlatAppearance.MouseDownBackColor = Color.Transparent;
+			btnCut.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			btnCut.FlatStyle = FlatStyle.Flat;
+			btnCut.Location = new Point(15, 609);
+			btnCut.Name = "btnCut";
+			btnCut.Size = new Size(60, 60);
+			btnCut.TabIndex = 15;
+			btnCut.UseVisualStyleBackColor = false;
+			btnCut.Click += editButton_Click;
+			btnCut.MouseDown += transportButton_MouseDown;
+			//
+			// btnCopy
+			//
+			btnCopy.AccessibleName = "Copy";
+			btnCopy.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+			btnCopy.BackColor = Color.Transparent;
+			btnCopy.BackgroundImage = Properties.Resources.editCopy;
+			btnCopy.BackgroundImageLayout = ImageLayout.Zoom;
+			btnCopy.FlatAppearance.BorderSize = 0;
+			btnCopy.FlatAppearance.MouseDownBackColor = Color.Transparent;
+			btnCopy.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			btnCopy.FlatStyle = FlatStyle.Flat;
+			btnCopy.Location = new Point(83, 609);
+			btnCopy.Name = "btnCopy";
+			btnCopy.Size = new Size(60, 60);
+			btnCopy.TabIndex = 16;
+			btnCopy.UseVisualStyleBackColor = false;
+			btnCopy.Click += editButton_Click;
+			btnCopy.MouseDown += transportButton_MouseDown;
+			//
+			// btnPaste
+			//
+			btnPaste.AccessibleName = "Paste";
+			btnPaste.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+			btnPaste.BackColor = Color.Transparent;
+			btnPaste.BackgroundImage = Properties.Resources.editPaste;
+			btnPaste.BackgroundImageLayout = ImageLayout.Zoom;
+			btnPaste.FlatAppearance.BorderSize = 0;
+			btnPaste.FlatAppearance.MouseDownBackColor = Color.Transparent;
+			btnPaste.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			btnPaste.FlatStyle = FlatStyle.Flat;
+			btnPaste.Location = new Point(151, 609);
+			btnPaste.Name = "btnPaste";
+			btnPaste.Size = new Size(60, 60);
+			btnPaste.TabIndex = 17;
+			btnPaste.UseVisualStyleBackColor = false;
+			btnPaste.Click += editButton_Click;
+			btnPaste.MouseDown += transportButton_MouseDown;
+			//
+			// btnPasteNewTrack
+			//
+			btnPasteNewTrack.AccessibleName = "Paste to New Track";
+			btnPasteNewTrack.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+			btnPasteNewTrack.BackColor = Color.Transparent;
+			btnPasteNewTrack.BackgroundImage = Properties.Resources.editPasteNewTrack;
+			btnPasteNewTrack.BackgroundImageLayout = ImageLayout.Zoom;
+			btnPasteNewTrack.FlatAppearance.BorderSize = 0;
+			btnPasteNewTrack.FlatAppearance.MouseDownBackColor = Color.Transparent;
+			btnPasteNewTrack.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			btnPasteNewTrack.FlatStyle = FlatStyle.Flat;
+			btnPasteNewTrack.Location = new Point(219, 609);
+			btnPasteNewTrack.Name = "btnPasteNewTrack";
+			btnPasteNewTrack.Size = new Size(60, 60);
+			btnPasteNewTrack.TabIndex = 18;
+			btnPasteNewTrack.UseVisualStyleBackColor = false;
+			btnPasteNewTrack.Click += editButton_Click;
+			btnPasteNewTrack.MouseDown += transportButton_MouseDown;
+			//
+			// btnDelete
+			//
+			btnDelete.AccessibleName = "Delete";
+			btnDelete.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+			btnDelete.BackColor = Color.Transparent;
+			btnDelete.BackgroundImage = Properties.Resources.editDelete;
+			btnDelete.BackgroundImageLayout = ImageLayout.Zoom;
+			btnDelete.FlatAppearance.BorderSize = 0;
+			btnDelete.FlatAppearance.MouseDownBackColor = Color.Transparent;
+			btnDelete.FlatAppearance.MouseOverBackColor = Color.Transparent;
+			btnDelete.FlatStyle = FlatStyle.Flat;
+			btnDelete.Location = new Point(287, 609);
+			btnDelete.Name = "btnDelete";
+			btnDelete.Size = new Size(60, 60);
+			btnDelete.TabIndex = 19;
+			btnDelete.UseVisualStyleBackColor = false;
+			btnDelete.Click += editButton_Click;
+			btnDelete.MouseDown += transportButton_MouseDown;
 			// 
 			// transportFeedback
 			// 
@@ -535,7 +656,7 @@
 			// 
 			trkDrawTimescale.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 			trkDrawTimescale.LargeChange = 50;
-			trkDrawTimescale.Location = new Point(15, 55);
+			trkDrawTimescale.Location = new Point(15, 31);
 			trkDrawTimescale.Maximum = 1000;
 			trkDrawTimescale.Minimum = 1;
 			trkDrawTimescale.Name = "trkDrawTimescale";
@@ -560,7 +681,7 @@
 			// 
 			lblPlayheadTime.AccessibleName = "Current playhead time";
 			lblPlayheadTime.Anchor = AnchorStyles.Bottom;
-			lblPlayheadTime.Font = new Font("Consolas", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+			lblPlayheadTime.Font = new Font("Segoe UI", 14F, FontStyle.Bold, GraphicsUnit.Point, 0);
 			lblPlayheadTime.ForeColor = Color.White;
 			lblPlayheadTime.Location = new Point(704, 677);
 			lblPlayheadTime.Name = "lblPlayheadTime";
@@ -574,10 +695,10 @@
 			chkFollowPlayback.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
 			chkFollowPlayback.AutoSize = true;
 			chkFollowPlayback.ForeColor = Color.White;
-			chkFollowPlayback.Location = new Point(15, 613);
+			chkFollowPlayback.Location = new Point(15, 677);
 			chkFollowPlayback.Name = "chkFollowPlayback";
 			chkFollowPlayback.Size = new Size(111, 19);
-			chkFollowPlayback.TabIndex = 12;
+			chkFollowPlayback.TabIndex = 20;
 			chkFollowPlayback.Text = "Follow playback";
 			chkFollowPlayback.UseVisualStyleBackColor = true;
 			chkFollowPlayback.CheckedChanged += chkFollowPlayback_CheckedChanged;
@@ -597,15 +718,32 @@
 			Controls.Add(btnEnd);
 			Controls.Add(btnSave);
 			Controls.Add(btnLoad);
-			Controls.Add(lblDebug);
+			Controls.Add(btnCut);
+			Controls.Add(btnCopy);
+			Controls.Add(btnPaste);
+			Controls.Add(btnPasteNewTrack);
+			Controls.Add(btnDelete);
+			Controls.Add(lblTimelineLeft);
+			Controls.Add(lblTimelineRight);
 			Controls.Add(panTracks);
 			Controls.Add(menu);
 			Icon = (Icon)resources.GetObject("$this.Icon");
 			KeyPreview = true;
 			MainMenuStrip = menu;
-			MinimumSize = new Size(720, 500);
+			MinimumSize = new Size(940, 500);
+			buttonToolTips.SetToolTip(btnPlay, "Play");
+			buttonToolTips.SetToolTip(btnReset, "Reset");
+			buttonToolTips.SetToolTip(btnEnd, "End");
+			buttonToolTips.SetToolTip(btnSave, "Save");
+			buttonToolTips.SetToolTip(btnLoad, "Load");
+			buttonToolTips.SetToolTip(btnCut, "Cut");
+			buttonToolTips.SetToolTip(btnCopy, "Copy");
+			buttonToolTips.SetToolTip(btnPaste, "Paste");
+			buttonToolTips.SetToolTip(btnPasteNewTrack, "Paste to New Track");
+			buttonToolTips.SetToolTip(btnDelete, "Delete");
 			Name = "FrmMain";
-			Text = "Mediocre Sound Designer";
+			Text = "Mediocore Sound Designer";
+			FormClosing += FrmMain_FormClosing;
 			SizeChanged += FrmMain_SizeChanged;
 			panTracks.ResumeLayout(false);
 			menu.ResumeLayout(false);
@@ -621,15 +759,22 @@
         private HScrollBar timelineScroll;
         private Label lblPlayheadTime;
         private CheckBox chkFollowPlayback;
-    private Label lblDebug;
+    private Label lblTimelineLeft;
+    private Label lblTimelineRight;
     private OpenFileDialog ofdLoadFile;
     private MenuStrip menu;
     private ToolStripMenuItem menuEdit;
     private Button btnPlay;
+    private ToolTip buttonToolTips;
     private Button btnReset;
     private Button btnEnd;
     private Button btnSave;
     private Button btnLoad;
+    private Button btnCut;
+    private Button btnCopy;
+    private Button btnPaste;
+    private Button btnPasteNewTrack;
+    private Button btnDelete;
     private System.Windows.Forms.Timer transportFeedback;
     private ToolStripMenuItem menuEditVolume;
     private ToolStripMenuItem menuEditReverse;
@@ -652,7 +797,7 @@
     private ToolStripMenuItem menuEditDelete;
     private Label lblPlayhead;
     private ToolStripMenuItem menuGenRecord;
-        private ToolStripMenuItem exportToToolStripMenuItem;
+        private ToolStripMenuItem menuFileExit;
 		private ToolStripMenuItem viewToolStripMenuItem;
 		private ToolStripMenuItem zoomToolStripMenuItem;
 		private ToolStripMenuItem fitToolStripMenuItem;
